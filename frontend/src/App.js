@@ -9,6 +9,7 @@ import DashboardView from './components/DashboardView';
 import ScanConfigView from './components/ScanConfigView';
 import ReportsView from './components/ReportsView';
 import SettingsView from './components/SettingsView';
+import TestRunsView from './components/TestRunsView'; // Imported flawlessly
 
 const AIShieldScanner = () => {
   const [activeTab, setActiveTab] = useState('Dashboard');
@@ -92,11 +93,12 @@ const AIShieldScanner = () => {
           {/* VIEW SWITCH BLOCK */}
           {activeTab === 'Dashboard' && <DashboardView />}
           {activeTab === 'Scan Configurations' && <ScanConfigView />}
+          {activeTab === 'Test Runs' && <TestRunsView />} {/* Connected Successfully */}
           {activeTab === 'Reports' && <ReportsView />}
           {activeTab === 'Settings' && <SettingsView />}
           
-          {/* Fallback for panels still under generation */}
-          {!['Dashboard', 'Scan Configurations', 'Reports', 'Settings'].includes(activeTab) && (
+          {/* Fallback layout dashboard safety controller condition wrapper */}
+          {!['Dashboard', 'Scan Configurations', 'Test Runs', 'Reports', 'Settings'].includes(activeTab) && (
             <div className="h-full flex items-center justify-center text-slate-500 italic">
               {activeTab} View is under development
             </div>
