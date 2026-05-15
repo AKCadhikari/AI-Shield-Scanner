@@ -14,15 +14,22 @@ const ReportsView = () => {
     { id: 'TST-1234', category: 'Prompt Injection', status: 'Failed', severity: 'Critical', score: 95, colorClass: 'bg-red-500' },
     { id: 'TST-1235', category: 'Prompt Injection', status: 'Failed', severity: 'Critical', score: 95, colorClass: 'bg-red-500' },
     { id: 'TST-1236', category: 'Data Leakage', status: 'Warning', severity: 'Medium', score: 45, colorClass: 'bg-orange-500' },
+    { id: 'TST-1237', category: 'Data Leakage', status: 'Warning', severity: 'Medium', score: 45, colorClass: 'bg-orange-500' },
+    { id: 'TST-1238', category: 'Data Leakage', status: 'Warning', severity: 'Medium', score: 45, colorClass: 'bg-orange-500' },
+    { id: 'TST-1239', category: 'Data Leakage', status: 'Warning', severity: 'Medium', score: 45, colorClass: 'bg-orange-500' },
+    { id: 'TST-1240', category: 'Data Leakage', status: 'Warning', severity: 'Medium', score: 45, colorClass: 'bg-orange-500' },
+    { id: 'TST-1241', category: 'Data Leakage', status: 'Warning', severity: 'Medium', score: 45, colorClass: 'bg-orange-500' },
+    { id: 'TST-1242', category: 'Data Leakage', status: 'Warning', severity: 'Medium', score: 45, colorClass: 'bg-orange-500' },
+    { id: 'TST-1243', category: 'Data Leakage', status: 'Warning', severity: 'Medium', score: 45, colorClass: 'bg-orange-500' },
   ];
 
   const filters = ['all', 'Critical', 'High', 'Medium', 'Low'];
 
   return (
-    <div className="w-full space-y-8 pb-6 text-slate-300 font-sans">
+    <div className="w-full flex-1 flex flex-col space-y-6 text-slate-300 font-sans overflow-hidden h-full max-h-full">
       
       {/* HEADER ROW */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shrink-0">
         <div>
           <h1 className="text-3xl font-bold text-white mb-1">Scan Results</h1>
           <p className="text-sm text-slate-400">Detailed analysis of security test results</p>
@@ -48,48 +55,31 @@ const ReportsView = () => {
         </div>
       </div>
 
-      {/* ULTRA-SIZED UPPER SECTION CARDS */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        {/* Metric 1: Total Tests */}
-        <div className="bg-[#151921] border border-slate-800/80 rounded-2xl p-8 flex flex-col justify-start h-64 transition-all hover:border-slate-700/50">
-          <span className="text-slate-400 text-sm font-semibold tracking-wide uppercase">Total Tests</span>
-          <span className="text-5xl font-bold text-white tracking-tight mt-4 mb-auto">5</span>
+      {/* COMPACT METRICS SECTION CARDS */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 shrink-0">
+        <div className="bg-[#151921] border border-slate-800/80 rounded-xl p-5 flex flex-col justify-between h-36 transition-all hover:border-slate-700/50">
+          <span className="text-slate-400 text-xs font-semibold tracking-wide uppercase">Total Tests</span>
+          <span className="text-4xl font-bold text-white tracking-tight leading-none mb-1">5</span>
         </div>
 
-        {/* Metric 2: Passed */}
-        <div className="bg-[#151921] border border-slate-800/80 rounded-2xl p-8 flex flex-col justify-start h-64 transition-all hover:border-slate-700/50">
-          <span className="text-slate-400 text-sm font-semibold tracking-wide uppercase">Passed</span>
-          <span className="text-5xl font-bold text-emerald-500 tracking-tight mt-4 mb-auto">2</span>
+        <div className="bg-[#151921] border border-slate-800/80 rounded-xl p-5 flex flex-col justify-between h-36 transition-all hover:border-slate-700/50">
+          <span className="text-slate-400 text-xs font-semibold tracking-wide uppercase">Passed</span>
+          <span className="text-4xl font-bold text-emerald-500 tracking-tight leading-none mb-1">2</span>
         </div>
 
-        {/* Metric 3: Failed */}
-        <div className="bg-[#151921] border border-slate-800/80 rounded-2xl p-8 flex flex-col justify-start h-64 transition-all hover:border-slate-700/50">
-          <span className="text-slate-400 text-sm font-semibold tracking-wide uppercase">Failed</span>
-          <span className="text-5xl font-bold text-red-500 tracking-tight mt-4 mb-auto">2</span>
+        <div className="bg-[#151921] border border-slate-800/80 rounded-xl p-5 flex flex-col justify-between h-36 transition-all hover:border-slate-700/50">
+          <span className="text-slate-400 text-xs font-semibold tracking-wide uppercase">Failed</span>
+          <span className="text-4xl font-bold text-red-500 tracking-tight leading-none mb-1">2</span>
         </div>
 
-        {/* Metric 4: Risk Score Radial Box */}
-        <div className="bg-[#151921] border border-slate-800/80 rounded-2xl p-8 flex flex-col justify-between items-center h-64 relative overflow-hidden transition-all hover:border-slate-700/50">
-          <span className="text-slate-400 text-sm font-semibold tracking-wide uppercase self-start">Overall Risk Score</span>
-          
-          <div className="relative w-40 h-40 flex items-center justify-center mt-4 drop-shadow-[0_0_20px_rgba(245,158,11,0.08)]">
-            <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-              <circle cx="18" cy="18" r="15.915" fill="transparent" stroke="#1f293d" strokeWidth="2.5" />
-              <circle cx="18" cy="18" r="15.915" fill="transparent" stroke="#10b981" strokeWidth="2.5" strokeDasharray="40 100" strokeDashoffset="0" />
-              <circle cx="18" cy="18" r="15.915" fill="transparent" stroke="#f97316" strokeWidth="2.5" strokeDasharray="20 100" strokeDashoffset="-40" />
-              <circle cx="18" cy="18" r="15.915" fill="transparent" stroke="#ef4444" strokeWidth="2.5" strokeDasharray="40 100" strokeDashoffset="-60" />
-            </svg>
-            <div className="absolute flex flex-col items-center justify-center text-center">
-              <span className="text-4xl font-black text-amber-500 leading-none">48</span>
-              <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-2">Risk Score</span>
-            </div>
-          </div>
-          <div></div>
+        <div className="bg-[#151921] border border-slate-800/80 rounded-xl p-5 flex flex-col justify-between h-36 transition-all hover:border-slate-700/50">
+          <span className="text-slate-400 text-xs font-semibold tracking-wide uppercase">Overall Risk Score</span>
+          <span className="text-4xl font-bold text-amber-500 tracking-tight leading-none mb-1">48</span>
         </div>
       </div>
 
       {/* FILTER CONTROL BAR */}
-      <div className="bg-[#151921] border border-slate-800/80 rounded-xl px-6 py-4 flex items-center gap-4">
+      <div className="bg-[#151921] border border-slate-800/80 rounded-xl px-6 py-4 flex items-center gap-4 shrink-0">
         <div className="flex items-center gap-2 text-slate-400 text-xs font-medium">
           <SlidersHorizontal size={14} />
           Filter by severity:
@@ -112,25 +102,27 @@ const ReportsView = () => {
       </div>
 
       {/* DETAILED RESULTS TABLE CONTAINER */}
-      {/* Fixed: max-w-full and overflow-hidden here helps container stay within bounds */}
-      <div className="bg-[#151921] border border-slate-800/80 rounded-xl shadow-sm max-w-full overflow-hidden">
-        {/* Fixed: overflow-x-auto combined with w-full enables horizontal scroll nicely */}
-        <div className="overflow-x-auto w-full scrollbar-thin scrollbar-thumb-slate-800">
-          {/* Fixed: whitespace-nowrap and min-w structural fallback prevents column squeeze */}
-          <table className="w-full text-left border-collapse min-w-212.5 whitespace-nowrap">
+      {/* Fixed: We control vertical overflow here directly on the parent card div */}
+      <div className="bg-[#151921] border border-slate-800/80 rounded-xl shadow-sm max-w-full overflow-y-auto overflow-x-hidden flex-1 min-h-0 custom-scrollbar">
+        
+        {/* Layer 2: Handles the horizontal tracking seamlessly */}
+        <div className="overflow-x-auto w-full h-full">
+          
+          <table className="w-full text-left border-collapse min-w-[850px]">
             <thead>
-              <tr className="text-slate-400 text-xs font-medium border-b border-slate-800/60 bg-slate-800/10">
-                <th className="w-12 py-4 pl-6"></th>
-                <th className="py-4 px-4 font-medium">Test ID</th>
-                <th className="py-4 px-4 font-medium">Category</th>
-                <th className="py-4 px-4 font-medium text-center">Status</th>
-                <th className="py-4 px-4 font-medium text-center">Severity</th>
-                <th className="py-4 pr-6 pl-4 font-medium">Risk Score</th>
+              {/* Fixed: Sticky header row with a high z-index and explicit solid background matching the card view */}
+              <tr className="sticky top-0 z-30 bg-[#151921] text-slate-400 text-xs font-medium border-b border-slate-800/60 shadow-[0_1px_0_0_rgba(30,41,59,0.8)]">
+                <th className="w-12 py-4 pl-6 bg-[#151921]"></th>
+                <th className="py-4 px-4 font-medium bg-[#151921]">Test ID</th>
+                <th className="py-4 px-4 font-medium bg-[#151921]">Category</th>
+                <th className="py-4 px-4 font-medium text-center bg-[#151921]">Status</th>
+                <th className="py-4 px-4 font-medium text-center bg-[#151921]">Severity</th>
+                <th className="py-4 pr-6 pl-4 font-medium bg-[#151921]">Risk Score</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/40">
-              {reportRecords.map((record) => (
-                <tr key={record.id} className="hover:bg-slate-800/10 transition-colors group">
+              {reportRecords.map((record, index) => (
+                <tr key={`${record.id}-${index}`} className="hover:bg-slate-800/10 transition-colors group">
                   <td className="py-4 pl-6 text-slate-600 group-hover:text-slate-400 cursor-pointer transition-colors">
                     <ChevronRight size={16} />
                   </td>
@@ -145,18 +137,14 @@ const ReportsView = () => {
                       record.status === 'Failed' ? 'bg-red-500/10 text-red-500 border-red-500/20' :
                       record.status === 'Warning' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' :
                       'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
-                    }`}>
-                      {record.status}
-                    </span>
+                    }`}>{record.status}</span>
                   </td>
                   <td className="py-4 px-4 text-center">
                     <span className={`inline-block min-w-16 px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider ${
                       record.severity === 'Critical' ? 'bg-red-600/20 text-red-400' :
                       record.severity === 'Medium' ? 'bg-blue-600/20 text-blue-400' :
                       'bg-emerald-600/20 text-emerald-400'
-                    }`}>
-                      {record.severity}
-                    </span>
+                    }`}>{record.severity}</span>
                   </td>
                   <td className="py-4 pr-6 pl-4">
                     <div className="flex items-center gap-3">
@@ -175,6 +163,7 @@ const ReportsView = () => {
               ))}
             </tbody>
           </table>
+          
         </div>
       </div>
 

@@ -1,5 +1,5 @@
-import React from 'react';
-import { Shield, Database } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Shield, Database, ChevronDown } from 'lucide-react';
 
 const SettingsView = () => {
   // Matrix data matching the target mockup table state exactly
@@ -14,10 +14,28 @@ const SettingsView = () => {
     { name: 'Modify Settings', admin: true, tester: false, viewer: false },
   ];
 
+  // Custom dropdown states for the Data Retention Policy field
+  const [retentionPolicy, setRetentionPolicy] = useState('90 Days');
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+  
+  const retentionOptions = ['30 Days', '60 Days', '90 Days'];
+
+  // Close the dropdown window gracefully if a click occurs outside of its bounds
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   return (
     <div className="w-full space-y-6 text-slate-300 font-sans pb-4">
       
-      {/* ADDED: TOP HEADER BLOCK */}
+      {/* TOP HEADER BLOCK */}
       <div>
         <h1 className="text-3xl font-bold text-white mb-1">Settings</h1>
         <p className="text-sm text-slate-400">Manage application permissions and global security rules</p>
@@ -108,18 +126,46 @@ const SettingsView = () => {
         </h3>
 
         <div className="space-y-6 pt-2">
-          {/* Form Block: Policy Retention Input Section */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-slate-800/60">
+          {/* Form Block: Custom Themed Dropdown Selection Menu */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-slate-800/60 relative">
             <div className="space-y-0.5">
               <label className="text-sm font-semibold text-slate-200 block">Data Retention Policy</label>
               <span className="text-xs text-slate-500 block">Scan results and logs will be automatically deleted after this period</span>
             </div>
-            <div className="w-full sm:w-48 shrink-0">
-              <select className="w-full bg-[#0b0e14] border border-slate-800 rounded-lg p-3 text-xs text-slate-200 outline-none focus:border-cyan-500 cursor-pointer transition-colors">
-                <option value="90">90 Days</option>
-                <option value="60">60 Days</option>
-                <option value="30">30 Days</option>
-              </select>
+            
+            {/* Custom UI Dropdown Component Container */}
+            <div className="w-full sm:w-48 shrink-0 relative" ref={dropdownRef}>
+              <button
+                type="button"
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                className={`w-full bg-[#0b0e14] border rounded-lg px-4 py-3 text-xs text-slate-200 flex items-center justify-between transition-all duration-200 ${
+                  isDropdownOpen ? 'border-cyan-500 ring-1 ring-cyan-500/20' : 'border-slate-800'
+                }`}
+              >
+                <span>{retentionPolicy}</span>
+                <ChevronDown className={`text-slate-400 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} size={14} />
+              </button>
+
+              {isDropdownOpen && (
+                <div className="absolute top-full left-0 w-full mt-2 bg-[#0b0e14] border border-slate-800 rounded-lg shadow-2xl z-100 overflow-hidden">
+                  {retentionOptions.map((option) => (
+                    <div
+                      key={option}
+                      onClick={() => {
+                        setRetentionPolicy(option);
+                        setIsDropdownOpen(false);
+                      }}
+                      className={`px-4 py-3 text-xs cursor-pointer transition-colors ${
+                        retentionPolicy === option 
+                          ? 'bg-cyan-500 text-slate-900 font-bold' 
+                          : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                      }`}
+                    >
+                      {option}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
