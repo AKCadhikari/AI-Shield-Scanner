@@ -7,6 +7,8 @@ import {
 
 import DashboardView from './components/DashboardView';
 import ScanConfigView from './components/ScanConfigView';
+import ReportsView from './components/ReportsView';
+import SettingsView from './components/SettingsView';
 // Import other views as they are created
 
 const AIShieldScanner = () => {
