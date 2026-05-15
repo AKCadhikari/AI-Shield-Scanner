@@ -9,7 +9,6 @@ import DashboardView from './components/DashboardView';
 import ScanConfigView from './components/ScanConfigView';
 import ReportsView from './components/ReportsView';
 import SettingsView from './components/SettingsView';
-// Import other views as they are created
 
 const AIShieldScanner = () => {
   const [activeTab, setActiveTab] = useState('Dashboard');
@@ -25,7 +24,7 @@ const AIShieldScanner = () => {
   return (
     <div className="flex h-screen bg-[#0b0e14] text-slate-300 font-sans">
       {/* SIDEBAR */}
-      <aside className="w-64 flex flex-col h-full border-r border-slate-800/40">
+      <aside className="w-64 flex flex-col h-full border-r border-slate-800/40 shrink-0">
         
         {/* Logo Section */}
         <div className="p-8 flex items-center justify-center">
@@ -61,13 +60,11 @@ const AIShieldScanner = () => {
 
         {/* SIDEBAR BOTTOM: Enhanced Profile & Centered Divider */}
         <div className="mt-auto p-4 pl-6 pb-6">
-          
-          {/* Centered Divider: Does not touch edges (image_94d638.png) */}
+          {/* Centered Divider: Does not touch edges */}
           <div className="border-t border-slate-800/60 mb-6 mr-2" /> 
 
           <div className="flex items-center gap-4 group">
-            
-            {/* User Profile Info (image_94da76.png) */}
+            {/* User Profile Info */}
             <div className="flex items-center gap-3 cursor-pointer overflow-hidden">
               <div className="shrink-0 w-11 h-11 rounded-full bg-slate-800 flex items-center justify-center text-cyan-500 border border-slate-700">
                 <User size={22} />
@@ -78,7 +75,7 @@ const AIShieldScanner = () => {
               </div>
             </div>
             
-            {/* Logout Button: Positioned close but aligned right */}
+            {/* Logout Button */}
             <button 
               title="Logout"
               className="p-1.5 rounded-lg text-slate-500 hover:bg-red-500/10 hover:text-red-500 transition-all shrink-0 ml-auto pr-2"
@@ -92,10 +89,14 @@ const AIShieldScanner = () => {
       {/* MAIN CONTENT AREA */}
       <main className="flex-1 flex flex-col overflow-hidden">
         <div className="flex-1 overflow-y-auto p-10">
+          {/* VIEW SWITCH BLOCK */}
           {activeTab === 'Dashboard' && <DashboardView />}
           {activeTab === 'Scan Configurations' && <ScanConfigView />}
-          {/* Default fallbacks for coming soon sections */}
-          {!['Dashboard', 'Scan Configurations'].includes(activeTab) && (
+          {activeTab === 'Reports' && <ReportsView />}
+          {activeTab === 'Settings' && <SettingsView />}
+          
+          {/* Fallback for panels still under generation */}
+          {!['Dashboard', 'Scan Configurations', 'Reports', 'Settings'].includes(activeTab) && (
             <div className="h-full flex items-center justify-center text-slate-500 italic">
               {activeTab} View is under development
             </div>
