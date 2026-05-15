@@ -105,7 +105,7 @@ const ReportsView = () => {
       <div className="bg-[#151921] border border-slate-800/80 rounded-xl shadow-sm max-w-full overflow-x-auto overflow-y-hidden flex flex-col flex-1 min-h-0">
         
         {/* Table layout wrapper with absolute control over width formatting */}
-        <div className="w-full flex flex-col flex-1 min-h-0 min-w-[850px]">
+        <div className="w-full flex flex-col flex-1 min-h-0 min-w-212.5">
           
           {/* FIXED HEADER SEGMENT - Pinned firmly outside of the scroll layer context */}
           <table className="w-full text-left border-collapse table-fixed shrink-0">
