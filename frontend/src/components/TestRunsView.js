@@ -39,7 +39,7 @@ const TestRunsView = () => {
   ];
 
   return (
-    <div className="w-full space-y-6 text-slate-300 font-sans">
+    <div className="w-full space-y-6 text-slate-300 font-sans pb-4">
       
       {/* 1. HEADER */}
       <div>
@@ -76,11 +76,11 @@ const TestRunsView = () => {
         </div>
       </div>
 
-      {/* 3. CORE INTERFACE CONTAINER */}
+      {/* 3. CORE INTERFACE CONTAINER - items-stretch aligns both column blocks perfectly */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 items-stretch">
         
-        {/* LIVE CONSOLE LOG CONTAINER - Height expanded to fill vertical workspace */}
-        <div className="xl:col-span-2 bg-[#151921] border border-slate-800/80 rounded-xl flex flex-col h-145 overflow-hidden shadow-sm">
+        {/* LIVE CONSOLE LOG CONTAINER */}
+        <div className="xl:col-span-2 bg-[#151921] border border-slate-800/80 rounded-xl flex flex-col h-155 overflow-hidden shadow-sm">
           <div className="px-6 py-4 border-b border-slate-800/60 flex justify-between items-center bg-slate-800/10">
             <h3 className="text-sm font-semibold text-white flex items-center gap-2">
               <Terminal size={16} className="text-cyan-400" />
@@ -119,48 +119,50 @@ const TestRunsView = () => {
           </div>
         </div>
 
-        {/* RIGHT SIDEBAR PANEL WRAPPER */}
-        <div className="space-y-6 flex flex-col justify-between h-full">
+        {/* RIGHT SIDEBAR WRAPPER - h-full fills out layout container alignment borders */}
+        <div className="flex flex-col justify-between gap-4 h-full">
           
           {/* Current Statistics board */}
-          <div className="bg-[#151921] border border-slate-800/80 rounded-xl p-6 space-y-5">
+          <div className="bg-[#151921] border border-slate-800/80 rounded-xl p-6 space-y-5 flex-1 flex flex-col justify-center">
             <h3 className="text-sm font-semibold text-white flex items-center gap-2 border-b border-slate-800/40 pb-3">
               <TrendingUp size={16} className="text-cyan-400" />
               Current Statistics
             </h3>
             
-            <div className="space-y-2">
-              <div className="flex justify-between items-baseline">
-                <span className="text-xs text-slate-400">Total Tests</span>
-                <span className="text-2xl font-bold text-white font-mono">847</span>
+            <div className="space-y-3 flex-1 flex flex-col justify-around">
+              <div className="space-y-2">
+                <div className="flex justify-between items-baseline">
+                  <span className="text-xl text-slate-400">Total Tests</span>
+                  <span className="text-2xl font-bold text-white font-mono">847</span>
+                </div>
+                <div className="w-full bg-slate-800 h-1 rounded-full overflow-hidden">
+                  <div className="bg-cyan-500 h-full w-3/4" />
+                </div>
               </div>
-              <div className="w-full bg-slate-800 h-1 rounded-full overflow-hidden">
-                <div className="bg-cyan-500 h-full w-3/4" />
-              </div>
-            </div>
 
-            <div className="space-y-2">
-              <div className="flex justify-between items-baseline">
-                <span className="text-xs text-slate-400">Failures</span>
-                <span className="text-2xl font-bold text-red-500 font-mono">23</span>
+              <div className="space-y-2">
+                <div className="flex justify-between items-baseline">
+                  <span className="text-xl text-slate-400">Failures</span>
+                  <span className="text-2xl font-bold text-red-500 font-mono">23</span>
+                </div>
+                <div className="w-full bg-slate-800 h-1 rounded-full overflow-hidden">
+                  <div className="bg-red-500 h-full w-1/4" />
+                </div>
               </div>
-              <div className="w-full bg-slate-800 h-1 rounded-full overflow-hidden">
-                <div className="bg-red-500 h-full w-1/4" />
-              </div>
-            </div>
 
-            <div className="space-y-2">
-              <div className="flex justify-between items-baseline">
-                <span className="text-xs text-slate-400">Risk Score</span>
-                <span className="text-2xl font-bold text-amber-500 font-mono">42</span>
-              </div>
-              <div className="w-full bg-slate-800 h-1 rounded-full overflow-hidden">
-                <div className="bg-linear-to-r from-emerald-500 via-amber-500 to-red-500 h-full w-[42%]" />
+              <div className="space-y-2">
+                <div className="flex justify-between items-baseline">
+                  <span className="text-xl text-slate-400">Risk Score</span>
+                  <span className="text-2xl font-bold text-amber-500 font-mono">42</span>
+                </div>
+                <div className="w-full bg-slate-800 h-1 rounded-full overflow-hidden">
+                  <div className="bg-linear-to-r from-emerald-500 via-amber-500 to-red-500 h-full w-[42%]" />
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Session Details Layout Card */}
+          {/* Scan Details Layout Card */}
           <div className="bg-[#151921] border border-slate-800/80 rounded-xl p-6 space-y-4">
             <h3 className="text-sm font-semibold text-white flex items-center gap-2 border-b border-slate-800/40 pb-3">
               <Clock size={16} className="text-cyan-400" />
@@ -190,7 +192,7 @@ const TestRunsView = () => {
           </div>
 
           {/* Stop Execution Button Action */}
-          <button className="w-full bg-transparent hover:bg-red-500/10 border border-red-500/30 hover:border-red-500 text-red-400 hover:text-red-500 font-semibold py-3.5 rounded-xl transition-all flex items-center justify-center gap-2 text-sm shadow-sm">
+          <button className="w-full bg-transparent hover:bg-red-500/10 border border-red-500/30 hover:border-red-500 text-red-400 hover:text-red-500 font-semibold py-4 rounded-xl transition-all flex items-center justify-center gap-2 text-sm shadow-sm shrink-0">
             <StopCircle size={16} />
             Stop Scan
           </button>

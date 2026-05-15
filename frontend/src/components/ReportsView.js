@@ -12,10 +12,8 @@ const ReportsView = () => {
 
   const reportRecords = [
     { id: 'TST-1234', category: 'Prompt Injection', status: 'Failed', severity: 'Critical', score: 95, colorClass: 'bg-red-500' },
-    { id: 'TST-1235', category: 'Data Leakage', status: 'Warning', severity: 'Medium', score: 45, colorClass: 'bg-orange-500' },
-    { id: 'TST-1236', category: 'Prompt Injection', status: 'Passed', severity: 'Low', score: 5, colorClass: 'bg-emerald-500' },
-    { id: 'TST-1237', category: 'Data Leakage', status: 'Failed', severity: 'Critical', score: 98, colorClass: 'bg-red-500' },
-    { id: 'TST-1238', category: 'Social Engineering', status: 'Passed', severity: 'Low', score: 10, colorClass: 'bg-emerald-500' },
+    { id: 'TST-1235', category: 'Prompt Injection', status: 'Failed', severity: 'Critical', score: 95, colorClass: 'bg-red-500' },
+    { id: 'TST-1236', category: 'Data Leakage', status: 'Warning', severity: 'Medium', score: 45, colorClass: 'bg-orange-500' },
   ];
 
   const filters = ['all', 'Critical', 'High', 'Medium', 'Low'];
@@ -52,7 +50,6 @@ const ReportsView = () => {
 
       {/* ULTRA-SIZED UPPER SECTION CARDS */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        
         {/* Metric 1: Total Tests */}
         <div className="bg-[#151921] border border-slate-800/80 rounded-2xl p-8 flex flex-col justify-start h-64 transition-all hover:border-slate-700/50">
           <span className="text-slate-400 text-sm font-semibold tracking-wide uppercase">Total Tests</span>
@@ -75,7 +72,6 @@ const ReportsView = () => {
         <div className="bg-[#151921] border border-slate-800/80 rounded-2xl p-8 flex flex-col justify-between items-center h-64 relative overflow-hidden transition-all hover:border-slate-700/50">
           <span className="text-slate-400 text-sm font-semibold tracking-wide uppercase self-start">Overall Risk Score</span>
           
-          {/* Scaled Ring Graphic to Fill the Space */}
           <div className="relative w-40 h-40 flex items-center justify-center mt-4 drop-shadow-[0_0_20px_rgba(245,158,11,0.08)]">
             <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
               <circle cx="18" cy="18" r="15.915" fill="transparent" stroke="#1f293d" strokeWidth="2.5" />
@@ -116,9 +112,12 @@ const ReportsView = () => {
       </div>
 
       {/* DETAILED RESULTS TABLE CONTAINER */}
-      <div className="bg-[#151921] border border-slate-800/80 rounded-xl overflow-hidden shadow-sm">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse min-w-175">
+      {/* Fixed: max-w-full and overflow-hidden here helps container stay within bounds */}
+      <div className="bg-[#151921] border border-slate-800/80 rounded-xl shadow-sm max-w-full overflow-hidden">
+        {/* Fixed: overflow-x-auto combined with w-full enables horizontal scroll nicely */}
+        <div className="overflow-x-auto w-full scrollbar-thin scrollbar-thumb-slate-800">
+          {/* Fixed: whitespace-nowrap and min-w structural fallback prevents column squeeze */}
+          <table className="w-full text-left border-collapse min-w-212.5 whitespace-nowrap">
             <thead>
               <tr className="text-slate-400 text-xs font-medium border-b border-slate-800/60 bg-slate-800/10">
                 <th className="w-12 py-4 pl-6"></th>
