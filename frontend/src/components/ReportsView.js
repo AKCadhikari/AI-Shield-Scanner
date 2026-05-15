@@ -16,17 +16,17 @@ const ReportsView = () => {
     { id: 'TST-1236', category: 'Data Leakage', status: 'Warning', severity: 'Medium', score: 45, colorClass: 'bg-orange-500' },
     { id: 'TST-1237', category: 'Data Leakage', status: 'Warning', severity: 'Medium', score: 45, colorClass: 'bg-orange-500' },
     { id: 'TST-1238', category: 'Data Leakage', status: 'Warning', severity: 'Medium', score: 45, colorClass: 'bg-orange-500' },
-    { id: 'TST-1239', category: 'Data Leakage', status: 'Warning', severity: 'Medium', score: 45, colorClass: 'bg-orange-500' },
     { id: 'TST-1240', category: 'Data Leakage', status: 'Warning', severity: 'Medium', score: 45, colorClass: 'bg-orange-500' },
     { id: 'TST-1241', category: 'Data Leakage', status: 'Warning', severity: 'Medium', score: 45, colorClass: 'bg-orange-500' },
     { id: 'TST-1242', category: 'Data Leakage', status: 'Warning', severity: 'Medium', score: 45, colorClass: 'bg-orange-500' },
     { id: 'TST-1243', category: 'Data Leakage', status: 'Warning', severity: 'Medium', score: 45, colorClass: 'bg-orange-500' },
+    { id: 'TST-1244', category: 'Data Leakage', status: 'Warning', severity: 'Medium', score: 45, colorClass: 'bg-orange-500' },
   ];
 
   const filters = ['all', 'Critical', 'High', 'Medium', 'Low'];
 
   return (
-    <div className="w-full flex-1 flex flex-col space-y-6 text-slate-300 font-sans overflow-hidden h-full max-h-full">
+    <div className="w-full flex-1 flex flex-col space-y-6 text-slate-300 font-sans overflow-hidden max-h-full">
       
       {/* HEADER ROW */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shrink-0">
@@ -102,68 +102,73 @@ const ReportsView = () => {
       </div>
 
       {/* DETAILED RESULTS TABLE CONTAINER */}
-      {/* Fixed: We control vertical overflow here directly on the parent card div */}
-      <div className="bg-[#151921] border border-slate-800/80 rounded-xl shadow-sm max-w-full overflow-y-auto overflow-x-hidden flex-1 min-h-0 custom-scrollbar">
+      <div className="bg-[#151921] border border-slate-800/80 rounded-xl shadow-sm max-w-full overflow-x-auto overflow-y-hidden flex flex-col flex-1 min-h-0">
         
-        {/* Layer 2: Handles the horizontal tracking seamlessly */}
-        <div className="overflow-x-auto w-full h-full">
+        {/* Table layout wrapper with absolute control over width formatting */}
+        <div className="w-full flex flex-col flex-1 min-h-0 min-w-[850px]">
           
-          <table className="w-full text-left border-collapse min-w-[850px]">
+          {/* FIXED HEADER SEGMENT - Pinned firmly outside of the scroll layer context */}
+          <table className="w-full text-left border-collapse table-fixed shrink-0">
             <thead>
-              {/* Fixed: Sticky header row with a high z-index and explicit solid background matching the card view */}
-              <tr className="sticky top-0 z-30 bg-[#151921] text-slate-400 text-xs font-medium border-b border-slate-800/60 shadow-[0_1px_0_0_rgba(30,41,59,0.8)]">
+              <tr className="text-slate-400 text-xs font-medium border-b border-slate-800/60 bg-[#151921]">
                 <th className="w-12 py-4 pl-6 bg-[#151921]"></th>
-                <th className="py-4 px-4 font-medium bg-[#151921]">Test ID</th>
-                <th className="py-4 px-4 font-medium bg-[#151921]">Category</th>
-                <th className="py-4 px-4 font-medium text-center bg-[#151921]">Status</th>
-                <th className="py-4 px-4 font-medium text-center bg-[#151921]">Severity</th>
-                <th className="py-4 pr-6 pl-4 font-medium bg-[#151921]">Risk Score</th>
+                <th className="py-4 px-4 font-medium bg-[#151921] w-[15%]">Test ID</th>
+                <th className="py-4 px-4 font-medium bg-[#151921] w-[35%]">Category</th>
+                <th className="py-4 px-4 font-medium text-center bg-[#151921] w-[15%]">Status</th>
+                <th className="py-4 px-4 font-medium text-center bg-[#151921] w-[15%]">Severity</th>
+                <th className="py-4 pr-6 pl-4 font-medium bg-[#151921] w-[20%]">Risk Score</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/40">
-              {reportRecords.map((record, index) => (
-                <tr key={`${record.id}-${index}`} className="hover:bg-slate-800/10 transition-colors group">
-                  <td className="py-4 pl-6 text-slate-600 group-hover:text-slate-400 cursor-pointer transition-colors">
-                    <ChevronRight size={16} />
-                  </td>
-                  <td className="py-4 px-4 text-sm font-mono text-cyan-500 cursor-pointer hover:underline">
-                    {record.id}
-                  </td>
-                  <td className="py-4 px-4 text-sm font-medium text-slate-200">
-                    {record.category}
-                  </td>
-                  <td className="py-4 px-4 text-center">
-                    <span className={`inline-block min-w-16 px-2.5 py-1 rounded text-[10px] font-bold uppercase border tracking-wider ${
-                      record.status === 'Failed' ? 'bg-red-500/10 text-red-500 border-red-500/20' :
-                      record.status === 'Warning' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' :
-                      'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
-                    }`}>{record.status}</span>
-                  </td>
-                  <td className="py-4 px-4 text-center">
-                    <span className={`inline-block min-w-16 px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider ${
-                      record.severity === 'Critical' ? 'bg-red-600/20 text-red-400' :
-                      record.severity === 'Medium' ? 'bg-blue-600/20 text-blue-400' :
-                      'bg-emerald-600/20 text-emerald-400'
-                    }`}>{record.severity}</span>
-                  </td>
-                  <td className="py-4 pr-6 pl-4">
-                    <div className="flex items-center gap-3">
-                      <span className="text-sm font-semibold font-mono text-white min-w-5 text-right">
-                        {record.score}
-                      </span>
-                      <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden max-w-30">
-                        <div 
-                          className={`h-full rounded-full ${record.colorClass}`} 
-                          style={{ width: `${record.score}%` }}
-                        ></div>
-                      </div>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
           </table>
-          
+
+          {/* INTERNAL DATA INNER LAYER CONTAINER - Vertically scrolls right below the fixed topic columns */}
+          <div className="overflow-y-auto custom-scrollbar flex-1 min-h-0 w-full">
+            <table className="w-full text-left border-collapse table-fixed">
+              <tbody className="divide-y divide-slate-800/40">
+                {reportRecords.map((record, index) => (
+                  <tr key={`${record.id}-${index}`} className="hover:bg-slate-800/10 transition-colors group">
+                    <td className="w-12 py-4 pl-6 text-slate-600 group-hover:text-slate-400 cursor-pointer transition-colors">
+                      <ChevronRight size={16} />
+                    </td>
+                    <td className="py-4 px-4 text-sm font-mono text-cyan-500 cursor-pointer hover:underline w-[15%] truncate">
+                      {record.id}
+                    </td>
+                    <td className="py-4 px-4 text-sm font-medium text-slate-200 w-[35%] truncate">
+                      {record.category}
+                    </td>
+                    <td className="py-4 px-4 text-center w-[15%]">
+                      <span className={`inline-block min-w-16 px-2.5 py-1 rounded text-[10px] font-bold uppercase border tracking-wider ${
+                        record.status === 'Failed' ? 'bg-red-500/10 text-red-500 border-red-500/20' :
+                        record.status === 'Warning' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' :
+                        'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
+                      }`}>{record.status}</span>
+                    </td>
+                    <td className="py-4 px-4 text-center w-[15%]">
+                      <span className={`inline-block min-w-16 px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider ${
+                        record.severity === 'Critical' ? 'bg-red-600/20 text-red-400' :
+                        record.severity === 'Medium' ? 'bg-blue-600/20 text-blue-400' :
+                        'bg-emerald-600/20 text-emerald-400'
+                      }`}>{record.severity}</span>
+                    </td>
+                    <td className="py-4 pr-6 pl-4 w-[20%]">
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm font-semibold font-mono text-white min-w-5 text-right">
+                          {record.score}
+                        </span>
+                        <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden max-w-30">
+                          <div 
+                            className={`h-full rounded-full ${record.colorClass}`} 
+                            style={{ width: `${record.score}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
         </div>
       </div>
 
