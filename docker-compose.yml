@@ -1,0 +1,120 @@
+version: "3.9"
+ 
+services:
+ 
+  # ── 1. FastAPI Application ──────────────────────────────────────
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ai_shield_app
+    restart: unless-stopped
+    ports:
+      - "8000:8000"           # Access the API at http://localhost:8000
+    environment:
+      # Database connection (matches the db service below)
+      DATABASE_URL: postgresql://shield_user:shield_pass@db:5432/ai_shield_db
+ 
+      # Redis connection (matches the redis service below)
+      REDIS_URL: redis://redis:6379/0
+ 
+      # JWT secret — CHANGE THIS in production, use a long random string
+      JWT_SECRET_KEY: change_this_to_a_long_random_secret_key
+      JWT_ALGORITHM: HS256
+      JWT_EXPIRE_MINUTES: 60
+ 
+      # AES encryption key for evidence logs (NFR07) — must be 32 bytes
+      AES_ENCRYPTION_KEY: change_this_32_byte_encryption_key!
+ 
+      # App settings
+      APP_ENV: development
+      APP_DEBUG: "true"
+ 
+    volumes:
+      - ./backend:/app          # Live code reload during development
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - shield_network
+ 
+  # ── 2. Celery Worker (async scan jobs) ──────────────────────────
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ai_shield_worker
+    restart: unless-stopped
+    command: celery -A workers.celery_app worker --loglevel=info --concurrency=4
+    environment:
+      DATABASE_URL: postgresql://shield_user:shield_pass@db:5432/ai_shield_db
+      REDIS_URL: redis://redis:6379/0
+      JWT_SECRET_KEY: change_this_to_a_long_random_secret_key
+      AES_ENCRYPTION_KEY: change_this_32_byte_encryption_key!
+      APP_ENV: development
+    volumes:
+      - ./backend:/app
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - shield_network
+ 
+  # ── 3. PostgreSQL Database ───────────────────────────────────────
+  db:
+    image: postgres:15-alpine        # Lightweight official PostgreSQL image
+    container_name: ai_shield_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ai_shield_db      # Database name
+      POSTGRES_USER: shield_user     # Database username
+      POSTGRES_PASSWORD: shield_pass # Database password (use .env in production)
+    ports:
+      - "5432:5432"                  # Access DB directly at localhost:5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data   # Persist data across restarts
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/schema.sql  # Auto-run schema on first start
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U shield_user -d ai_shield_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - shield_network
+ 
+  # ── 4. Redis (task queue + rate limiting) ────────────────────────
+  redis:
+    image: redis:7-alpine            # Lightweight official Redis image
+    container_name: ai_shield_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"                  # Access Redis at localhost:6379
+    volumes:
+      - redis_data:/data             # Persist Redis data across restarts
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - shield_network
+ 
+# ── Persistent volumes ───────────────────────────────────────────
+# Docker stores this data on your machine — survives container restarts
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+ 
+# ── Internal network ─────────────────────────────────────────────
+# All services talk to each other through this private network
+# The outside world can only reach them through the exposed ports above
+networks:
+  shield_network:
+    driver: bridge
+ 
