@@ -44,7 +44,7 @@ async def run_test():
 
     # Patch the HTTP call so we don't need a real chatbot
     with patch("Scanner._call_chatbot", side_effect=mock_call_chatbot):
-        import Scanner
+        import backend.Scanner as Scanner
         results = await Scanner.run_scan(
             endpoint_url="http://mock-chatbot/v1/chat/completions",
             api_key="test-key",

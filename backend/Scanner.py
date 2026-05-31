@@ -12,9 +12,9 @@ from typing import Optional
 
 import aiohttp
 
-from Prompt_library import get_prompts, PromptCategory, Prompt
+from backend.Prompt_library import get_prompts, PromptCategory, Prompt
 from Detection import analyse, Label
-from Risk_scoring import score as risk_score, aggregate, CATEGORY_TO_VULN
+from backend.Risk_scoring import score as risk_score, aggregate, CATEGORY_TO_VULN
 
 logger = logging.getLogger("aishield")
 
