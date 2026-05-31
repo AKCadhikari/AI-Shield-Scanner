@@ -15,7 +15,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-import Detection
+import backend.Detection as Detection
 import backend.Scanner as Scanner
 from backend.Prompt_library import get_all_categories, get_prompts, PromptCategory
 
