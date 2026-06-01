@@ -41,6 +41,9 @@ app = FastAPI(
     version="1.0.0",
     description="Automated prompt injection & data leakage scanner for AI chatbots.",
     lifespan=lifespan,
+    docs_url=None,
+    redoc_url=None,
+    openapi_url=None,
 )
 
 app.add_middleware(
