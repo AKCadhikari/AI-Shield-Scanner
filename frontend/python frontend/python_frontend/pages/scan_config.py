@@ -1,128 +1,179 @@
 import reflex as rx
 from ..state import State
 
-def configuration_rule_row(rule_id: str, title: str, subtitle: str, state_val: bool) -> rx.Component:
-    """Generates rule activation toggle switch blocks."""
-    return rx.hstack(
-        rx.vstack(
-            rx.text(title, class_name="text-sm font-semibold text-white"),
-            rx.text(subtitle, class_name="text-xs text-slate-500 mt-1"),
-            class_name="space-y-0"
-        ),
-        rx.button(
-            rx.box(
-                class_name=rx.cond(state_val, "absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white translate-x-6 transition-transform duration-200", "absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white translate-x-0 transition-transform duration-200")
+def auth_tile(label: str, value: str, icon_tag: str) -> rx.Component:
+    """Renders a sleek, state-aware authentication selection tile container."""
+    is_selected = (State.auth_method == value)
+    
+    return rx.el.button(
+        rx.el.div(
+            rx.icon(
+                tag=icon_tag, 
+                size=16, 
+                class_name=rx.cond(is_selected, "text-cyan-400", "text-slate-500")
             ),
-            on_click=lambda: State.toggle_rule(rule_id),
-            class_name=rx.cond(
-                state_val,
-                "w-12 h-6 rounded-full relative transition-colors duration-200 ease-in-out bg-cyan-500 border-none cursor-pointer shrink-0",
-                "w-12 h-6 rounded-full relative transition-colors duration-200 ease-in-out bg-[#0b0e14] border border-slate-700 cursor-pointer shrink-0"
-            )
+            rx.text(label, class_name="text-sm font-semibold tracking-wide"),
+            class_name="flex items-center gap-3 justify-center"
         ),
-        class_name="flex items-center justify-between py-4 border-b border-slate-800/60 w-full"
+        on_click=lambda: State.set_auth_method(value),
+        type="button",
+        class_name=rx.cond(
+            is_selected,
+            "flex-1 bg-cyan-500/10 text-cyan-400 border border-cyan-500/40 py-3.5 px-4 rounded-xl transition-all shadow-[0_0_15px_rgba(6,182,212,0.15)] font-bold cursor-pointer text-center",
+            "flex-1 bg-[#0d1117] text-slate-400 border border-slate-800/80 hover:border-slate-700/80 hover:text-slate-200 py-3.5 px-4 rounded-xl transition-all font-semibold cursor-pointer text-center"
+        )
+    )
+
+def section_card_header(icon_tag: str, title: str, color_class: str = "text-cyan-500") -> rx.Component:
+    """Helper for card header categories matching your design."""
+    return rx.el.div(
+        rx.icon(tag=icon_tag, size=18, class_name=color_class),
+        rx.heading(title, class_name="text-sm font-semibold text-white tracking-wide"),
+        class_name="flex items-center gap-3 mb-6 border-b border-slate-800/40 pb-4 w-full"
+    )
+
+def test_category_row(title: str, description: str, checked_default: bool = True) -> rx.Component:
+    """Renders a selectable test checkbox row container element."""
+    return rx.el.div(
+        rx.el.div(
+            rx.text(title, class_name="text-sm font-semibold text-slate-200 mb-1"),
+            rx.text(description, class_name="text-xs text-slate-500"),
+            class_name="flex flex-col"
+        ),
+        rx.el.input(
+            type="checkbox",
+            default_checked=checked_default,
+            class_name="w-4 h-4 rounded border-slate-700 bg-slate-800 text-cyan-500 focus:ring-cyan-500 focus:ring-offset-slate-900 accent-cyan-500 cursor-pointer"
+        ),
+        class_name="flex items-center justify-between p-4 bg-[#0d1117] rounded-lg border border-slate-800/60 w-full"
+    )
+
+def detection_rule_row(title: str, description: str, active_default: bool = True) -> rx.Component:
+    """Renders an interactive switch toggle item row matching your screenshot."""
+    return rx.el.div(
+        rx.el.div(
+            rx.text(title, class_name="text-sm font-medium text-slate-300 mb-0.5"),
+            rx.text(description, class_name="text-xs text-slate-500"),
+            class_name="flex flex-col"
+        ),
+        rx.el.label(
+            rx.el.input(
+                type="checkbox",
+                default_checked=active_default,
+                class_name="sr-only peer"
+            ),
+            rx.el.div(
+                class_name="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-cyan-500"
+            ),
+            class_name="relative inline-flex items-center cursor-pointer"
+        ),
+        class_name="flex items-center justify-between py-4 border-b border-slate-800/40 w-full last:border-none"
     )
 
 def scan_config_page() -> rx.Component:
-    """The landing profile settings configuration scan component views."""
-    return rx.vstack(
-        rx.box(
-            rx.heading("Create New Scan", class_name="text-3xl font-bold text-white mb-2"),
-            rx.text("Configure security testing for your AI chatbot", class_name="text-sm text-slate-400")
+    """The complete Scan Configuration view with dynamic auth method selector tiles."""
+    return rx.el.div(
+        # Page Title Segment
+        rx.el.div(
+            rx.heading("Create New Scan", class_name="text-3xl font-bold text-white text-left"),
+            rx.text("Configure security testing for your AI chatbot", class_name="text-slate-500 mt-1 text-left"),
+            class_name="mb-8 w-full"
         ),
         
-        rx.box(
-            rx.heading(
-                rx.hstack(
-                    rx.box(rx.icon(tag="lock", size=18, class_name="text-blue-400"), class_name="p-1.5 rounded border border-blue-500/30 bg-blue-500/10"),
-                    rx.text("Chatbot Target Configuration"),
-                    align="center", spacing="3"
-                ),
-                class_name="text-white font-semibold text-lg mb-6"
-            ),
-            rx.vstack(
-                rx.box(
-                    rx.text("Chatbot API Endpoint URL", class_name="block text-sm font-medium text-slate-200 mb-2"),
-                    rx.input(value="https://api.example.com/v1/chat", class_name="w-full bg-[#0b0e14] border border-slate-800 rounded-lg p-3.5 text-sm text-white focus:border-cyan-500 outline-none"),
-                    rx.text("Enter the full URL of your chatbot API endpoint", class_name="text-xs text-slate-500 mt-2"),
-                    class_name="w-full"
+        # Core Parameters Form Stack
+        rx.el.div(
+            # 1. Chatbot Target Configuration Card
+            rx.el.div(
+                section_card_header("lock", "Chatbot Target Configuration"),
+                rx.el.div(
+                    rx.el.label("Chatbot API Endpoint URL", class_name="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2"),
+                    rx.el.input(
+                        type="text",
+                        placeholder="https://api.example.com/v1/chat",
+                        value="https://api.example.com/v1/chat",
+                        class_name="w-full bg-[#0d1117] border border-slate-800 rounded-lg px-4 py-3 text-slate-300 text-sm focus:outline-none focus:border-cyan-500/80 transition-colors placeholder-slate-600"
+                    ),
+                    rx.text("Enter the full URL of your chatbot API endpoint", class_name="text-xs text-slate-600 mt-1.5"),
+                    class_name="mb-6 w-full text-left"
                 ),
                 
-                rx.box(
-                    rx.text("Authentication Method", class_name="block text-sm font-medium text-slate-200 mb-2"),
-                    rx.button(
-                        rx.text(State.auth_method),
-                        rx.icon(tag="chevron-down", size=18, class_name="text-slate-500"),
-                        on_click=State.toggle_auth_dropdown,
-                        class_name="w-full bg-[#0b0e14] border border-slate-800 rounded-lg p-3.5 text-sm text-white flex items-center justify-between cursor-pointer"
+                # Dynamic Auth Option Row Container
+                rx.el.div(
+                    rx.el.label("Authentication Method", class_name="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3"),
+                    rx.el.div(
+                        auth_tile("None", "none", "ban"),
+                        auth_tile("Bearer Token", "bearer", "key-round"),
+                        auth_tile("API Key", "apikey", "fingerprint"),
+                        class_name="flex flex-row items-center gap-4 w-full"
                     ),
-                    rx.cond(
-                        State.auth_dropdown_open,
-                        rx.box(
-                            *[rx.box(
-                                opt,
-                                on_click=lambda o=opt: State.change_auth_method(o),
-                                class_name="px-4 py-3 text-sm cursor-pointer text-slate-300 hover:bg-slate-800 hover:text-white transition-colors"
-                              ) for opt in ['None', 'API Key', 'Bearer Token', 'OAuth 2.0']],
-                            class_name="absolute w-full mt-2 bg-[#0b0e14] border border-slate-800 rounded-lg shadow-2xl z-50 overflow-hidden"
-                        )
+                    class_name="w-full text-left"
+                ),
+                class_name="bg-[#151921] p-6 rounded-xl border border-slate-800 w-full flex flex-col items-start"
+            ),
+            
+            # 2. Test Profile Selection Card
+            rx.el.div(
+                section_card_header("flask-conical", "Test Profile", color_class="text-emerald-500"),
+                rx.el.div(
+                    rx.el.label("Test Categories", class_name="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3"),
+                    rx.el.div(
+                        test_category_row("Prompt Injection Testing", "Test for malicious prompt injections", checked_default=True),
+                        test_category_row("Data Leakage Testing", "Detect potential data exposure vulnerabilities", checked_default=True),
+                        test_category_row("Social Engineering Tests", "Test resistance to social engineering attacks", checked_default=False),
+                        class_name="space-y-3 w-full"
                     ),
-                    class_name="w-full relative"
+                    class_name="w-full text-left"
                 ),
-                class_name="space-y-6 w-full"
+                class_name="bg-[#151921] p-6 rounded-xl border border-slate-800 w-full flex flex-col items-start"
             ),
-            class_name="bg-[#151921] border border-slate-800 rounded-xl p-8 w-full"
-        ),
-        
-        rx.box(
-            rx.heading(
-                rx.hstack(
-                    rx.box(rx.icon(tag="flask-conical", size=18, class_name="text-emerald-400"), class_name="p-1.5 rounded border border-emerald-500/30 bg-emerald-500/10"),
-                    rx.text("Test Profile"), align="center", spacing="3"
+            
+            # 3. Custom Test Prompts Card
+            rx.el.div(
+                section_card_header("text-cursor-input", "Custom Test Prompts", color_class="text-purple-500"),
+                rx.el.div(
+                    rx.el.label("Add Custom Prompts (Optional)", class_name="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2"),
+                    rx.el.textarea(
+                        placeholder="Enter custom test prompts, one per line...",
+                        class_name="w-full h-28 bg-[#0d1117] border border-slate-800 rounded-lg p-4 text-slate-300 text-sm focus:outline-none focus:border-cyan-500/80 transition-colors placeholder-slate-600 resize-none"
+                    ),
+                    class_name="w-full text-left"
                 ),
-                class_name="text-white font-semibold text-lg mb-6"
+                class_name="bg-[#151921] p-6 rounded-xl border border-slate-800 w-full flex flex-col items-start"
             ),
-            rx.vstack(
-                rx.text("Test Intensity", class_name="block text-sm font-medium text-slate-200 mb-3"),
-                rx.hstack(
-                    *[rx.button(
-                        lvl,
-                        on_click=lambda l=lvl: State.change_intensity(l),
-                        class_name=rx.cond(
-                            State.intensity == lvl,
-                            "flex-1 py-3 rounded-xl border-none text-sm font-medium transition-all bg-cyan-500 text-white shadow-[0_0_15px_rgba(6,182,212,0.3)] cursor-pointer",
-                            "flex-1 py-3 rounded-xl border border-slate-800 text-slate-300 bg-[#0b0e14] hover:bg-slate-800/50 cursor-pointer"
-                        )
-                      ) for lvl in ['Low', 'Medium', 'High']],
-                    class_name="w-full flex gap-4"
+            
+            # 4. Detection Rules Toggle Switches Card
+            rx.el.div(
+                section_card_header("shield-check", "Detection Rules", color_class="text-amber-500"),
+                rx.el.div(
+                    detection_rule_row("PII Detection", "Detect personally identifiable information in responses", active_default=True),
+                    detection_rule_row("API Key Detection", "Identify exposed API keys or tokens", active_default=True),
+                    detection_rule_row("Credential Detection", "Detect leaked usernames, passwords, or secrets", active_default=False),
+                    class_name="w-full"
                 ),
-                class_name="w-full"
+                class_name="bg-[#151921] p-6 rounded-xl border border-slate-800 w-full flex flex-col items-start"
             ),
-            class_name="bg-[#151921] border border-slate-800 rounded-xl p-8 w-full"
-        ),
-        
-        rx.box(
-            rx.heading(
-                rx.hstack(
-                    rx.box(rx.icon(tag="shield-alert", size=18, class_name="text-orange-400"), class_name="p-1.5 rounded border border-orange-500/30 bg-orange-500/10"),
-                    rx.text("Detection Rules"), align="center", spacing="3"
+            
+            # Bottom Action Buttons
+            rx.el.div(
+                rx.el.button(
+                    rx.el.div(
+                        rx.icon(tag="play", size=16),
+                        rx.text("Start Scan", class_name="font-bold text-sm text-[#0b0e14]"),
+                        class_name="flex items-center justify-center gap-2"
+                    ),
+                    class_name="flex-1 bg-cyan-400 hover:bg-cyan-300 text-[#0b0e14] py-3.5 px-6 rounded-xl transition-all shadow-[0_0_20px_rgba(34,211,238,0.3)] border-none font-bold cursor-pointer"
                 ),
-                class_name="text-white font-semibold text-lg mb-6"
+                rx.el.button(
+                    rx.el.div(
+                        rx.icon(tag="save", size=16),
+                        rx.text("Save Configuration", class_name="font-semibold text-sm text-slate-300"),
+                        class_name="flex items-center justify-center gap-2"
+                    ),
+                    class_name="bg-transparent hover:bg-slate-800/40 text-slate-300 py-3.5 px-6 rounded-xl border border-slate-800 font-semibold cursor-pointer transition-colors"
+                ),
+                class_name="flex items-center gap-4 w-full mt-2"
             ),
-            rx.vstack(
-                configuration_rule_row("pii", "PII Detection", "Detect personally identifiable information in responses", State.toggle_pii),
-                configuration_rule_row("api_key", "API Key Detection", "Identify exposed API keys or tokens", State.toggle_api_key),
-                configuration_rule_row("credentials", "Credential Detection", "Detect leaked usernames, passwords, or secrets", State.toggle_credentials),
-                class_name="w-full"
-            ),
-            class_name="bg-[#151921] border border-slate-800 rounded-xl p-8 w-full"
+            class_name="space-y-6 w-full flex flex-col"
         ),
-        
-        rx.hstack(
-            rx.button(rx.icon(tag="play", size=20), rx.text("Start Scan"), class_name="flex-1 flex items-center justify-center gap-2 bg-cyan-500 hover:bg-cyan-400 text-slate-900 font-bold py-4 px-6 rounded-xl border-none cursor-pointer"),
-            rx.button(rx.icon(tag="save", size=20), rx.text("Save Configuration"), class_name="flex-1 flex items-center justify-center gap-2 bg-[#151921] hover:bg-slate-800 border border-slate-700 text-white font-medium py-4 px-6 rounded-xl cursor-pointer"),
-            class_name="w-full flex flex-row gap-4 pt-2"
-        ),
-        class_name="w-full space-y-8 h-full",
-        align_items="stretch"
+        class_name="w-full h-screen flex flex-col p-10 overflow-y-auto"
     )

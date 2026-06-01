@@ -4,13 +4,16 @@ class State(rx.State):
     """The global application reactive state controller."""
     active_tab: str = "Dashboard"
     
-    auth_dropdown_open: bool = False
-    auth_method: str = "None"
+    # Report Page Custom Dropdown Controls
+    report_dropdown_open: bool = False
+    selected_report: str = "TST-2026-001"
     
-    retention_dropdown_open: bool = False
-    retention_policy: str = "90 Days"
+    # Scan Configuration Settings
+    auth_method: str = "none"            
+    retention_policy: str = "90 Days"    
+    intensity: str = "Medium"            
     
-    intensity: str = "Medium"
+    # Active Detection Rule Toggles
     toggle_pii: bool = True
     toggle_api_key: bool = True
     toggle_credentials: bool = False
@@ -18,19 +21,20 @@ class State(rx.State):
     def set_active_tab(self, tab_name: str):
         self.active_tab = tab_name
 
-    def toggle_auth_dropdown(self):
-        self.auth_dropdown_open = not self.auth_dropdown_open
+    def toggle_report_dropdown(self):
+        """Flips the display visibility of the high-tech reports selector."""
+        self.report_dropdown_open = not self.report_dropdown_open
 
-    def change_auth_method(self, method: str):
+    def select_report(self, report_id: str):
+        """Sets the active historical scan data session tracking identifier code."""
+        self.selected_report = report_id
+        self.report_dropdown_open = False
+
+    def set_auth_method(self, method: str):
         self.auth_method = method
-        self.auth_dropdown_open = False
-
-    def toggle_retention_dropdown(self):
-        self.retention_dropdown_open = not self.retention_dropdown_open
 
     def change_retention_policy(self, policy: str):
         self.retention_policy = policy
-        self.retention_dropdown_open = False
 
     def change_intensity(self, level: str):
         self.intensity = level
