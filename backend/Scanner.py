@@ -117,32 +117,39 @@ async def _run_one(
 async def run_scan(
     endpoint_url: str,
     api_key: str = "",
-    model_name: str = "gpt-3.5-turbo",
+    model_name: str = "gpt-4o",
     categories: Optional[list[str]] = None,
     intensity: str = "medium",
     max_prompts: Optional[int] = None,
+    extra_prompts: Optional[list] = None,   # list of Prompt objects from UI custom input
 ) -> dict:
     """
     Main entry point.
 
     Parameters
     ----------
-    endpoint_url : str   — full URL of the chatbot API e.g. https://api.openai.com/v1/chat/completions
-    api_key      : str   — Bearer token (leave blank if none)
-    model_name   : str   — model identifier e.g. gpt-4o, claude-3-5-sonnet-20241022
-    categories   : list  — which attack categories to test (None = all)
-    intensity    : str   — low | medium | high
-    max_prompts  : int   — cap total prompts (useful for quick tests)
+    endpoint_url  : str   — full URL of the chatbot API
+    api_key       : str   — Bearer token (leave blank if none)
+    model_name    : str   — model identifier e.g. gpt-4o
+    categories    : list  — which attack categories to test (None = all)
+    intensity     : str   — low | medium | high
+    max_prompts   : int   — cap total library prompts (custom prompts always included)
+    extra_prompts : list  — additional Prompt objects from the UI custom prompt input
 
     Returns
     -------
     dict with summary + full results list
     """
-    # Build prompt list
+    # Build prompt list from library
     cats = [PromptCategory(c) for c in categories] if categories else None
     prompts = get_prompts(cats)
     if max_prompts:
         prompts = prompts[:max_prompts]
+
+    # Append any custom prompts from the UI — always run, not subject to max_prompts cap
+    if extra_prompts:
+        prompts = list(prompts) + list(extra_prompts)
+        logger.info("Added %d custom prompt(s) from UI", len(extra_prompts))
 
     cfg = INTENSITY_SETTINGS.get(intensity, INTENSITY_SETTINGS["medium"])
     semaphore = asyncio.Semaphore(cfg["concurrency"])
