@@ -27,3 +27,31 @@ Thumbs.db
 # Parcel cache
 .parcel-cache/
 .cache/
+
+# --- Reflex Specific ---
+.web/
+rxconfig.py
+# (Optional: Keep rxconfig.py tracked if you want your team to share config settings, 
+# but ignore it if it contains environment-specific URLs or secrets)
+
+# --- Python Virtual Environments ---
+.venv/
+venv/
+ENV/
+env/
+
+# --- Python Cache and Compiled Files ---
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+
+# --- Operating System Files ---
+.DS_Store
+Thumbs.db
+
+# --- Environment Variables / Secrets ---
+.env
+.env.local
