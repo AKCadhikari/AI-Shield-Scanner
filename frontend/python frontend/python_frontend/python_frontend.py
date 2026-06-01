@@ -26,9 +26,11 @@ def index() -> rx.Component:
         class_name="flex h-screen bg-[#0b0e14] text-slate-300 font-sans overflow-hidden w-full"
     )
 
+# Instantiate the Reflex application and inject the global Tailwind CSS bundle
 app = rx.App(
     stylesheets=[
         "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
+        "https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css", # Injects the styling compiler directly
     ]
 )
 app.add_page(index, route="/")
