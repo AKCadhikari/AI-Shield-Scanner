@@ -17,4 +17,4 @@ class Base(DeclarativeBase):
         """Derive table name from class name"""
         import re
         name = re.sub(r"(?<!^)(?=[A-Z])", "_", cls.__name__).lower()
-        return name + "s")
+        return name + "s"
