@@ -1,7 +1,7 @@
 """
 scanner.py
 Core scan engine. Sends prompts to the target chatbot and returns results.
-No database. Results are returned as plain Python dicts.
+Supports real server-side cancellation via cancel_scan(scan_id).
 """
 from __future__ import annotations
 
@@ -23,6 +23,19 @@ INTENSITY_SETTINGS = {
     "medium": {"concurrency": 2, "delay": 1.5,  "timeout": 60,  "retries": 2},
     "high":   {"concurrency": 3, "delay": 0.8,  "timeout": 90,  "retries": 3},
 }
+
+# Registry of active scans: scan_id → asyncio.Task
+_active_scans: dict[str, asyncio.Task] = {}
+
+
+def cancel_scan(scan_id: str) -> bool:
+    """Cancel a running scan by ID. Returns True if found and cancelled."""
+    task = _active_scans.get(scan_id)
+    if task and not task.done():
+        task.cancel()
+        logger.info("Scan %s cancelled by user.", scan_id)
+        return True
+    return False
 
 
 async def _call_chatbot(
@@ -46,7 +59,6 @@ async def _call_chatbot(
 
     async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=timeout)) as session:
         async with session.post(endpoint_url, json=payload, headers=headers) as resp:
-            # Handle 429 rate-limit — raise so caller can retry
             if resp.status == 429:
                 retry_after = float(resp.headers.get("Retry-After", "5"))
                 raise aiohttp.ClientResponseError(
@@ -56,13 +68,10 @@ async def _call_chatbot(
             resp.raise_for_status()
             data = await resp.json()
 
-            # OpenAI / Anthropic / Azure style
             if "choices" in data:
                 return data["choices"][0]["message"]["content"]
-            # Anthropic Messages API style
             if "content" in data and isinstance(data["content"], list):
                 return data["content"][0].get("text", "")
-            # Fallback
             return str(data)
 
 
@@ -86,10 +95,11 @@ async def _run_one(
                     endpoint_url, api_key, model_name, prompt.text, timeout=timeout
                 )
                 error = None
-                break   # success
+                break
+            except asyncio.CancelledError:
+                raise   # propagate — scan is being stopped
             except aiohttp.ClientResponseError as e:
                 if e.status == 429 and attempt < retries:
-                    # Exponential back-off: 5s, 10s, 20s …
                     wait = 5 * (2 ** attempt)
                     logger.warning("Rate limited on %s — waiting %ds (attempt %d/%d)",
                                    prompt.id, wait, attempt + 1, retries)
@@ -108,7 +118,6 @@ async def _run_one(
                 break
 
         detection = analyse(response_text)
-
         risk = risk_score(
             category=prompt.category.value,
             severity_hint=prompt.severity,
@@ -117,15 +126,16 @@ async def _run_one(
         )
 
         await asyncio.sleep(delay)
+
         return {
-            "prompt_id":       prompt.id,
-            "category":        prompt.category.value,
-            "description":     prompt.description,
-            "severity_hint":   prompt.severity,
-            "prompt_text":     prompt.text,
-            "response_text":   response_text,
-            "label":           detection.label.value,
-            "matches":         [
+            "prompt_id":      prompt.id,
+            "category":       prompt.category.value,
+            "description":    prompt.description,
+            "severity_hint":  prompt.severity,
+            "prompt_text":    prompt.text,
+            "response_text":  response_text,
+            "label":          detection.label.value,
+            "matches": [
                 {
                     "leak_type":  m.leak_type.value,
                     "evidence":   m.evidence,
@@ -134,13 +144,49 @@ async def _run_one(
                 }
                 for m in detection.matches
             ],
-            "semantic_score":  detection.semantic_score,
-            "reasoning":       detection.reasoning,
-            "risk_score":      risk.score,
-            "severity":        risk.severity.value,
-            "mitigation":      risk.mitigation,
-            "error":           error,
+            "semantic_score": detection.semantic_score,
+            "reasoning":      detection.reasoning,
+            "risk_score":     risk.score,
+            "severity":       risk.severity.value,
+            "mitigation":     risk.mitigation,
+            "error":          error,
         }
+
+
+async def _do_scan(
+    scan_id: str,
+    prompts: list,
+    endpoint_url: str,
+    api_key: str,
+    model_name: str,
+    cfg: dict,
+) -> dict:
+    """Inner coroutine that runs all prompts. Wrapped in a Task so it can be cancelled."""
+    semaphore = asyncio.Semaphore(cfg["concurrency"])
+
+    tasks = [
+        asyncio.ensure_future(
+            _run_one(p, endpoint_url, api_key, model_name, semaphore,
+                     cfg["delay"], timeout=cfg["timeout"], retries=cfg["retries"])
+        )
+        for p in prompts
+    ]
+
+    results = []
+    try:
+        results = list(await asyncio.gather(*tasks))
+    except asyncio.CancelledError:
+        # Cancel every sub-task immediately
+        for t in tasks:
+            t.cancel()
+        # Collect whatever finished before cancellation
+        for t in tasks:
+            if t.done() and not t.cancelled() and t.exception() is None:
+                results.append(t.result())
+        logger.info("Scan %s stopped — collected %d partial results.", scan_id, len(results))
+        raise   # re-raise so the outer task is also marked cancelled
+
+    return results
 
 
 async def run_scan(
@@ -150,58 +196,57 @@ async def run_scan(
     categories: Optional[list[str]] = None,
     intensity: str = "medium",
     max_prompts: Optional[int] = None,
-    extra_prompts: Optional[list] = None,   # list of Prompt objects from UI custom input
+    extra_prompts: Optional[list] = None,
+    scan_id: Optional[str] = None,
 ) -> dict:
     """
-    Main entry point.
-
-    Parameters
-    ----------
-    endpoint_url  : str   — full URL of the chatbot API
-    api_key       : str   — Bearer token (leave blank if none)
-    model_name    : str   — model identifier e.g. gpt-4o
-    categories    : list  — which attack categories to test (None = all)
-    intensity     : str   — low | medium | high
-    max_prompts   : int   — cap total library prompts (custom prompts always included)
-    extra_prompts : list  — additional Prompt objects from the UI custom prompt input
-
-    Returns
-    -------
-    dict with summary + full results list
+    Main entry point. scan_id is pre-assigned by main.py so the client
+    can call /scan/{scan_id}/cancel before the scan finishes.
     """
-    # Build prompt list from library
+    if scan_id is None:
+        scan_id = str(uuid.uuid4())
+
     cats = [PromptCategory(c) for c in categories] if categories else None
     prompts = get_prompts(cats)
     if max_prompts:
         prompts = prompts[:max_prompts]
-
-    # Append any custom prompts from the UI — always run, not subject to max_prompts cap
     if extra_prompts:
         prompts = list(prompts) + list(extra_prompts)
         logger.info("Added %d custom prompt(s) from UI", len(extra_prompts))
 
     cfg = INTENSITY_SETTINGS.get(intensity, INTENSITY_SETTINGS["medium"])
-    semaphore = asyncio.Semaphore(cfg["concurrency"])
 
-    logger.info("Scan started — %d prompts, intensity=%s, target=%s",
-                len(prompts), intensity, endpoint_url)
+    logger.info("Scan %s started — %d prompts, intensity=%s, target=%s",
+                scan_id, len(prompts), intensity, endpoint_url)
 
-    tasks = [
-        _run_one(p, endpoint_url, api_key, model_name, semaphore, cfg["delay"],
-                 timeout=cfg["timeout"], retries=cfg["retries"])
-        for p in prompts
-    ]
-    results = await asyncio.gather(*tasks)
+    # Wrap in a Task and register it so cancel_scan() can reach it
+    loop = asyncio.get_event_loop()
+    scan_task = loop.create_task(
+        _do_scan(scan_id, prompts, endpoint_url, api_key, model_name, cfg)
+    )
+    _active_scans[scan_id] = scan_task
 
-    summary = aggregate(list(results))
-    summary["scan_id"]       = str(uuid.uuid4())
-    summary["total_prompts"] = len(results)
-    summary["pass_count"]    = sum(1 for r in results if r["label"] == "pass")
-    summary["warning_count"] = sum(1 for r in results if r["label"] == "warning")
-    summary["fail_count"]    = sum(1 for r in results if r["label"] == "fail")
+    cancelled = False
+    results = []
+    try:
+        results = await scan_task
+    except asyncio.CancelledError:
+        cancelled = True
+    finally:
+        _active_scans.pop(scan_id, None)
 
-    logger.info("Scan complete — fail=%d warn=%d pass=%d overall=%s score=%.1f",
-                summary["fail_count"], summary["warning_count"], summary["pass_count"],
-                summary["overall_severity"], summary["max_score"])
+    summary = aggregate(results)
+    summary["scan_id"]        = scan_id
+    summary["total_prompts"]  = len(prompts)
+    summary["completed"]      = len(results)
+    summary["cancelled"]      = cancelled
+    summary["pass_count"]     = sum(1 for r in results if r["label"] == "pass")
+    summary["warning_count"]  = sum(1 for r in results if r["label"] == "warning")
+    summary["fail_count"]     = sum(1 for r in results if r["label"] == "fail")
 
-    return {"summary": summary, "results": list(results)}
+    logger.info("Scan %s %s — fail=%d warn=%d pass=%d score=%.1f",
+                scan_id, "CANCELLED" if cancelled else "complete",
+                summary["fail_count"], summary["warning_count"],
+                summary["pass_count"], summary["max_score"])
+
+    return {"summary": summary, "results": results}

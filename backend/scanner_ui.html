@@ -833,7 +833,8 @@ const API = '';   // empty = same origin; change to 'http://localhost:8000' if n
 // ── State ─────────────────────────────────────────────────────────────────
 let customPrompts = [];
 let selectedSeverity = 'medium';
-let _scanAbortController = null;
+let _activeScanId  = null;   // scan_id known to the server
+let _scanAbortCtrl = null;   // AbortController for the fetch
 
 // ── Nav ───────────────────────────────────────────────────────────────────
 function showSection(id, btn) {
@@ -899,10 +900,22 @@ function renderCustomTags() {
 }
 
 // ── Run scan ──────────────────────────────────────────────────────────────
-function stopScan() {
-  if (_scanAbortController) {
-    _scanAbortController.abort();
-    _scanAbortController = null;
+async function stopScan() {
+  const stopBtn = document.getElementById('stopScanBtn');
+  stopBtn.disabled = true;
+  stopBtn.textContent = '⏳ Stopping…';
+
+  // 1. Tell the SERVER to cancel the asyncio task immediately
+  if (_activeScanId) {
+    try {
+      await fetch(`${API}/scan/${_activeScanId}/cancel`, { method: 'POST' });
+    } catch (_) { /* network issue */ }
+  }
+
+  // 2. Drop the pending HTTP response
+  if (_scanAbortCtrl) {
+    _scanAbortCtrl.abort();
+    _scanAbortCtrl = null;
   }
 }
 
@@ -936,46 +949,50 @@ async function runScan() {
   const btnTxt   = document.getElementById('btnText');
   const running  = document.getElementById('scanRunning');
 
-  btn.disabled = true;
+  btn.disabled          = true;
+  stopBtn.disabled      = false;
+  stopBtn.textContent   = '⏹ Stop Scan';
   stopBtn.style.display = 'inline-flex';
   spinner.style.display = 'block';
-  btnTxt.textContent = 'Scanning…';
+  btnTxt.textContent    = 'Scanning…';
   running.style.display = 'block';
   document.getElementById('inlineResults').innerHTML = '';
+  _activeScanId = null;
   animateProgress();
 
-  _scanAbortController = new AbortController();
-  const signal = _scanAbortController.signal;
-
-  // Use a long fetch timeout (10 min) to accommodate medium/high scans with many prompts
-  const fetchTimeout = setTimeout(() => { if (_scanAbortController) _scanAbortController.abort(); }, 10 * 60 * 1000);
+  _scanAbortCtrl = new AbortController();
 
   try {
     const res = await fetch(`${API}/scan`, {
-      method: 'POST',
+      method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-      signal,
+      body:    JSON.stringify(body),
+      signal:  _scanAbortCtrl.signal,
     });
     if (!res.ok) { const e = await res.json(); throw new Error(e.detail || 'Scan failed'); }
     const data = await res.json();
+    _activeScanId = data?.summary?.scan_id ?? null;
+    if (data?.summary?.cancelled) {
+      showToast('Scan stopped — partial results shown.', 'info');
+    } else {
+      showToast('Scan complete!', 'success');
+    }
     renderResults(data, document.getElementById('inlineResults'));
-    showToast('Scan complete!', 'success');
   } catch (err) {
     if (err.name === 'AbortError') {
       showToast('Scan stopped by user.', 'info');
       document.getElementById('inlineResults').innerHTML =
-        '<div style="color:var(--muted);padding:24px;text-align:center;">⏹ Scan was stopped before completing.</div>';
+        '<div style="color:var(--muted);padding:24px;text-align:center;">⏹ Scan stopped. Partial results (if any) saved on the server.</div>';
     } else {
       showToast('Error: ' + err.message, 'error');
     }
   } finally {
-    clearTimeout(fetchTimeout);
-    _scanAbortController = null;
-    btn.disabled = false;
+    _activeScanId         = null;
+    _scanAbortCtrl        = null;
+    btn.disabled          = false;
     stopBtn.style.display = 'none';
     spinner.style.display = 'none';
-    btnTxt.textContent = '▶ Run Scan';
+    btnTxt.textContent    = '▶ Run Scan';
     running.style.display = 'none';
     clearInterval(_progressInterval);
   }

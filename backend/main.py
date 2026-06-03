@@ -9,6 +9,7 @@ UI:     http://localhost:8000
 import logging
 import asyncio
 import os
+import uuid
 from contextlib import asynccontextmanager
 from typing import Optional
 
@@ -78,7 +79,7 @@ class ScanRequest(BaseModel):
     categories: Optional[list[str]] = None
     intensity: str = "medium"
     max_prompts: Optional[int] = None
-    extra_prompts: Optional[list[ExtraPrompt]] = None   # ← custom prompts from UI
+    extra_prompts: Optional[list[ExtraPrompt]] = None
 
     model_config = {
         "protected_namespaces": (),
@@ -106,20 +107,29 @@ async def health():
 # ── Scan endpoints ─────────────────────────────────────────────────────────────
 @app.post("/scan", tags=["scan"])
 async def start_scan(req: ScanRequest):
-    """Run a full scan. Custom prompts in extra_prompts are appended to the library."""
-    try:
-        # Build extra Prompt objects from UI custom prompts
-        extras: list[Prompt] = []
-        for ep in (req.extra_prompts or []):
-            extras.append(Prompt(
-                id=ep.id,
-                category=PromptCategory.DIRECT_INJECTION,   # custom → treated as injection
-                text=ep.text,
-                description=ep.description,
-                severity=ep.severity,
-                tags=["custom"],
-            ))
+    """
+    Run a full scan. Returns immediately with scan_id, then streams results.
+    The scan_id is generated here so the client can cancel mid-scan via
+    POST /scan/{scan_id}/cancel.
+    """
+    # Pre-assign scan_id so the UI can cancel before the scan finishes
+    scan_id = str(uuid.uuid4())
 
+    # Store a placeholder so /cancel works before results land
+    _scan_store[scan_id] = {"status": "running", "summary": {"scan_id": scan_id}}
+
+    extras: list[Prompt] = []
+    for ep in (req.extra_prompts or []):
+        extras.append(Prompt(
+            id=ep.id,
+            category=PromptCategory.DIRECT_INJECTION,
+            text=ep.text,
+            description=ep.description,
+            severity=ep.severity,
+            tags=["custom"],
+        ))
+
+    try:
         result = await scanner.run_scan(
             endpoint_url=req.endpoint_url,
             api_key=req.api_key,
@@ -128,13 +138,25 @@ async def start_scan(req: ScanRequest):
             intensity=req.intensity,
             max_prompts=req.max_prompts,
             extra_prompts=extras,
+            scan_id=scan_id,          # pass pre-assigned ID
         )
     except Exception as e:
+        _scan_store.pop(scan_id, None)
         raise HTTPException(status_code=500, detail=str(e))
 
-    scan_id = result["summary"]["scan_id"]
     _scan_store[scan_id] = result
     return result
+
+
+@app.post("/scan/{scan_id}/cancel", tags=["scan"])
+async def cancel_scan(scan_id: str):
+    """Stop a running scan immediately on the server side."""
+    if scan_id not in _scan_store:
+        raise HTTPException(status_code=404, detail="Scan not found.")
+    found = scanner.cancel_scan(scan_id)
+    if not found:
+        return {"cancelled": False, "detail": "Scan already completed or not found."}
+    return {"cancelled": True, "scan_id": scan_id}
 
 
 @app.get("/scan/{scan_id}/fails", tags=["scan"])
