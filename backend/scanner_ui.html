@@ -517,7 +517,7 @@
   .result-item.expanded .result-body { display: block; }
 
   .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 14px 0; }
-  .detail-block { }
+ 
   .detail-label { font-size: 10px; color: var(--muted); font-weight: 700; letter-spacing: .7px; text-transform: uppercase; margin-bottom: 5px; }
   .detail-val { font-size: 13px; line-height: 1.5; }
   .code-block {
@@ -555,7 +555,7 @@
   .mitigation-list li::before { content: '→'; position: absolute; left: 0; color: var(--accent); }
 
   /* ── Delete section ─────────────────── */
-  .delete-list { }
+
   .scan-row {
     display: flex;
     align-items: center;
@@ -688,15 +688,15 @@
           <div class="chip selected" data-cat="direct_injection">Direct Injection</div>
           <div class="chip selected" data-cat="indirect_injection">Indirect Injection</div>
           <div class="chip selected" data-cat="jailbreak">Jailbreak</div>
-          <div class="chip" data-cat="social_engineering">Social Engineering</div>
-          <div class="chip" data-cat="data_leakage_pii">Data Leakage — PII</div>
+          <div class="chip selected" data-cat="social_engineering">Social Engineering</div>
+          <div class="chip selected" data-cat="data_leakage_pii">Data Leakage — PII</div>
           <div class="chip selected" data-cat="data_leakage_system">Data Leakage — System</div>
           <div class="chip selected" data-cat="data_leakage_secrets">Data Leakage — Secrets</div>
-          <div class="chip" data-cat="obfuscation">Obfuscation</div>
-          <div class="chip" data-cat="memory_manipulation">Memory Manipulation</div>
-          <div class="chip" data-cat="role_hijacking">Role Hijacking</div>
-          <div class="chip" data-cat="multilingual">Multilingual</div>
-          <div class="chip" data-cat="chained">Chained Attacks</div>
+          <div class="chip" data-cat="roleplay_bypass">Roleplay Bypass</div>
+          <div class="chip" data-cat="privilege_escalation">Privilege Escalation</div>
+          <div class="chip" data-cat="manipulation">Manipulation</div>
+          <div class="chip" data-cat="harmful_output">Harmful Output</div>
+          <div class="chip" data-cat="auth_bypass">Auth Bypass</div>
         </div>
       </div>
 
@@ -773,6 +773,9 @@
         <div class="spinner" id="btnSpinner"></div>
         <span id="btnText">▶ Run Scan</span>
       </button>
+      <button class="btn-danger" id="stopScanBtn" style="display:none;margin-left:12px;" onclick="stopScan()">
+        ⏹ Stop Scan
+      </button>
 
       <!-- Inline results -->
       <div id="inlineResults" style="margin-top:28px;"></div>
@@ -830,6 +833,7 @@ const API = '';   // empty = same origin; change to 'http://localhost:8000' if n
 // ── State ─────────────────────────────────────────────────────────────────
 let customPrompts = [];
 let selectedSeverity = 'medium';
+let _scanAbortController = null;
 
 // ── Nav ───────────────────────────────────────────────────────────────────
 function showSection(id, btn) {
@@ -895,6 +899,13 @@ function renderCustomTags() {
 }
 
 // ── Run scan ──────────────────────────────────────────────────────────────
+function stopScan() {
+  if (_scanAbortController) {
+    _scanAbortController.abort();
+    _scanAbortController = null;
+  }
+}
+
 async function runScan() {
   const url   = document.getElementById('endpointUrl').value.trim();
   const key   = document.getElementById('apiKey').value.trim();
@@ -919,31 +930,54 @@ async function runScan() {
   };
 
   // UI: start loading
-  const btn    = document.getElementById('runScanBtn');
-  const spinner = document.getElementById('btnSpinner');
-  const btnTxt  = document.getElementById('btnText');
-  const running = document.getElementById('scanRunning');
+  const btn      = document.getElementById('runScanBtn');
+  const stopBtn  = document.getElementById('stopScanBtn');
+  const spinner  = document.getElementById('btnSpinner');
+  const btnTxt   = document.getElementById('btnText');
+  const running  = document.getElementById('scanRunning');
 
   btn.disabled = true;
+  stopBtn.style.display = 'inline-flex';
   spinner.style.display = 'block';
   btnTxt.textContent = 'Scanning…';
   running.style.display = 'block';
   document.getElementById('inlineResults').innerHTML = '';
   animateProgress();
 
+  _scanAbortController = new AbortController();
+  const signal = _scanAbortController.signal;
+
+  // Use a long fetch timeout (10 min) to accommodate medium/high scans with many prompts
+  const fetchTimeout = setTimeout(() => { if (_scanAbortController) _scanAbortController.abort(); }, 10 * 60 * 1000);
+
   try {
-    const res  = await fetch(`${API}/scan`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    const res = await fetch(`${API}/scan`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+      signal,
+    });
     if (!res.ok) { const e = await res.json(); throw new Error(e.detail || 'Scan failed'); }
     const data = await res.json();
     renderResults(data, document.getElementById('inlineResults'));
     showToast('Scan complete!', 'success');
   } catch (err) {
-    showToast('Error: ' + err.message, 'error');
+    if (err.name === 'AbortError') {
+      showToast('Scan stopped by user.', 'info');
+      document.getElementById('inlineResults').innerHTML =
+        '<div style="color:var(--muted);padding:24px;text-align:center;">⏹ Scan was stopped before completing.</div>';
+    } else {
+      showToast('Error: ' + err.message, 'error');
+    }
   } finally {
+    clearTimeout(fetchTimeout);
+    _scanAbortController = null;
     btn.disabled = false;
+    stopBtn.style.display = 'none';
     spinner.style.display = 'none';
     btnTxt.textContent = '▶ Run Scan';
     running.style.display = 'none';
+    clearInterval(_progressInterval);
   }
 }
 

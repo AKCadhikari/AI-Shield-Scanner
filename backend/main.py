@@ -5,7 +5,6 @@ No database. No auth. Just run it and start scanning.
 
 Start:  uvicorn main:app --reload --port 8000
 UI:     http://localhost:8000
-Docs:   http://localhost:8000/docs
 """
 import logging
 import asyncio
@@ -82,6 +81,7 @@ class ScanRequest(BaseModel):
     extra_prompts: Optional[list[ExtraPrompt]] = None   # ← custom prompts from UI
 
     model_config = {
+        "protected_namespaces": (),
         "json_schema_extra": {
             "examples": [{
                 "endpoint_url": "https://api.openai.com/v1/chat/completions",

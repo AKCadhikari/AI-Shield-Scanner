@@ -19,9 +19,9 @@ from backend.Risk_scoring import score as risk_score, aggregate, CATEGORY_TO_VUL
 logger = logging.getLogger("aishield")
 
 INTENSITY_SETTINGS = {
-    "low":    {"concurrency": 1, "delay": 2.0},
-    "medium": {"concurrency": 3, "delay": 0.5},
-    "high":   {"concurrency": 5, "delay": 0.1},
+    "low":    {"concurrency": 1, "delay": 2.0,  "timeout": 30,  "retries": 1},
+    "medium": {"concurrency": 2, "delay": 1.5,  "timeout": 60,  "retries": 2},
+    "high":   {"concurrency": 3, "delay": 0.8,  "timeout": 90,  "retries": 3},
 }
 
 
@@ -30,7 +30,7 @@ async def _call_chatbot(
     api_key: str,
     model_name: str,
     prompt_text: str,
-    timeout: int = 30,
+    timeout: int = 60,
 ) -> str:
     """Send one prompt to the target chatbot and return its response as a string."""
     headers = {"Content-Type": "application/json"}
@@ -46,6 +46,13 @@ async def _call_chatbot(
 
     async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=timeout)) as session:
         async with session.post(endpoint_url, json=payload, headers=headers) as resp:
+            # Handle 429 rate-limit — raise so caller can retry
+            if resp.status == 429:
+                retry_after = float(resp.headers.get("Retry-After", "5"))
+                raise aiohttp.ClientResponseError(
+                    resp.request_info, resp.history,
+                    status=429, message=f"Rate limited — retry after {retry_after}s",
+                )
             resp.raise_for_status()
             data = await resp.json()
 
@@ -66,16 +73,39 @@ async def _run_one(
     model_name: str,
     semaphore: asyncio.Semaphore,
     delay: float,
+    timeout: int = 60,
+    retries: int = 2,
 ) -> dict:
     async with semaphore:
         response_text = ""
         error = None
 
-        try:
-            response_text = await _call_chatbot(endpoint_url, api_key, model_name, prompt.text)
-        except Exception as e:
-            error = str(e)
-            logger.warning("Prompt %s failed to reach target: %s", prompt.id, e)
+        for attempt in range(retries + 1):
+            try:
+                response_text = await _call_chatbot(
+                    endpoint_url, api_key, model_name, prompt.text, timeout=timeout
+                )
+                error = None
+                break   # success
+            except aiohttp.ClientResponseError as e:
+                if e.status == 429 and attempt < retries:
+                    # Exponential back-off: 5s, 10s, 20s …
+                    wait = 5 * (2 ** attempt)
+                    logger.warning("Rate limited on %s — waiting %ds (attempt %d/%d)",
+                                   prompt.id, wait, attempt + 1, retries)
+                    await asyncio.sleep(wait)
+                else:
+                    error = str(e)
+                    logger.warning("Prompt %s failed: %s", prompt.id, e)
+                    break
+            except asyncio.TimeoutError:
+                error = f"Request timed out after {timeout}s"
+                logger.warning("Prompt %s timed out", prompt.id)
+                break
+            except Exception as e:
+                error = str(e)
+                logger.warning("Prompt %s failed to reach target: %s", prompt.id, e)
+                break
 
         detection = analyse(response_text)
 
@@ -87,7 +117,6 @@ async def _run_one(
         )
 
         await asyncio.sleep(delay)
-
         return {
             "prompt_id":       prompt.id,
             "category":        prompt.category.value,
@@ -158,7 +187,8 @@ async def run_scan(
                 len(prompts), intensity, endpoint_url)
 
     tasks = [
-        _run_one(p, endpoint_url, api_key, model_name, semaphore, cfg["delay"])
+        _run_one(p, endpoint_url, api_key, model_name, semaphore, cfg["delay"],
+                 timeout=cfg["timeout"], retries=cfg["retries"])
         for p in prompts
     ]
     results = await asyncio.gather(*tasks)
