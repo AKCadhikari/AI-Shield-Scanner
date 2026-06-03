@@ -99,35 +99,35 @@ class RefreshToken(Base):
 
    __tablename__ = "refresh_tokens"
 
-    id: Mapped[uuid.UUID] = mapped_column(
+   id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
-    user_id: Mapped[uuid.UUID] = mapped_column(
+   )
+   user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False,
-    )
-    token_hash: Mapped[str] = mapped_column(
+   )
+   token_hash: Mapped[str] = mapped_column(
         String(255), nullable=False
-    )
-    expires_at: Mapped[datetime] = mapped_column(
+   )
+   expires_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False
-    )
-    revoked: Mapped[bool] = mapped_column(
+   ) 
+   revoked: Mapped[bool] = mapped_column(
         Boolean, default=False, nullable=False
-    )
-    created_at: Mapped[datetime] = mapped_column(
+   )
+   created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
-    )
-
-    user: Mapped["User"] = relationship(
+   )
+   
+   user: Mapped["User"] = relationship(
         "User", back_populates="refresh_tokens"
-    )
+   )
+   
+   @property
+   def is_valid(self) -> bool:
+    from datetime import timezone
+    return not self.revoked and self.expires_at > datetime.now(tz=timezone.utc)
 
-    @property
-    def is_valid(self) -> bool:
-        from datetime import timezone
-        return not self.revoked and self.expires_at > datetime.now(tz=timezone.utc)
-
-    def __repr__(self) -> str:
-        return f"<RefreshToken id={self.id} revoked={self.revoked}>"
+   def __repr__(self) -> str:
+      return f"<RefreshToken id={self.id} revoked={self.revoked}>"
