@@ -3,7 +3,7 @@ main.py
 AI Shield Scanner — lightweight API.
 No database. No auth. Just run it and start scanning.
 
-Start:  uvicorn main:app --reload --port 8000
+Start:  uvicorn backend.main:app --reload --port 8000
 UI:     http://localhost:8000
 """
 import logging
@@ -33,7 +33,15 @@ async def lifespan(app: FastAPI):
     logger.info("Loading semantic detection model…")
     await detection.load_model()
     logger.info("AI Shield Scanner ready.")
-    yield
+    try:
+        yield
+    except (asyncio.CancelledError, KeyboardInterrupt):
+        pass   # suppress shutdown noise — server is stopping normally
+    finally:
+        # Cancel any scans still running so they don't print tracebacks
+        for scan_id in list(scanner._active_scans.keys()):
+            scanner.cancel_scan(scan_id)
+        logger.info("AI Shield Scanner shut down cleanly.")
 
 
 app = FastAPI(

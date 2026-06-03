@@ -662,16 +662,22 @@
       <!-- Target config -->
       <div class="card">
         <div class="card-title">Target Chatbot</div>
+
+        <div id="providerHint" style="font-size:12px;color:var(--muted);margin-bottom:14px;padding:8px 12px;background:var(--surface2);border-radius:6px;border-left:3px solid var(--accent);">
+          Paste any chatbot endpoint URL below — the scanner auto-detects the provider (OpenAI, Anthropic, Gemini, Ollama, Cohere, or any OpenAI-compatible API).
+        </div>
+
         <label>Endpoint URL</label>
-        <input type="url" id="endpointUrl" placeholder="https://api.openai.com/v1/chat/completions"/>
+        <input type="url" id="endpointUrl" placeholder="e.g. https://api.openai.com/v1/chat/completions"/>
+
         <div class="row-2">
           <div>
             <label>API Key</label>
-            <input type="text" id="apiKey" placeholder="sk-… (leave blank if none)"/>
+            <input type="text" id="apiKey" placeholder="Leave blank for Ollama / local models"/>
           </div>
           <div>
             <label>Model Name</label>
-            <input type="text" id="modelName" placeholder="gpt-4o" value="gpt-4o"/>
+            <input type="text" id="modelName" placeholder="e.g. gpt-4o, claude-3-5-sonnet-20241022, gemini-2.0-flash"/>
           </div>
         </div>
       </div>
