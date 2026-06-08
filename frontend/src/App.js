@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import logoUrl from './Logo.png';
+import logoUrl from './AI Shield Scanner logo.png';
 import { 
   LayoutDashboard, Settings, ShieldAlert, 
   PlayCircle, FileText, ChevronRight, 
