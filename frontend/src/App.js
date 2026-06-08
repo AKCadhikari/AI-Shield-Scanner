@@ -5,9 +5,6 @@ import {
   User, LogOut, Menu, X 
 } from 'lucide-react';
 
-// USE THE RELATIVE PATH WITH './'
-import logoUrl from './logo.png';
-
 import DashboardView from './components/DashboardView';
 import ScanConfigView from './components/ScanConfigView';
 import ReportsView from './components/ReportsView';
@@ -32,36 +29,29 @@ const AIShieldScanner = () => {
   };
 
   return (
-    <div 
-      className="flex flex-col xl:flex-row bg-[#0b0e14] text-slate-300 font-sans overflow-hidden relative"
-      style={{ height: '100vh', width: '100vw' }}
-    >
+    <div className="flex flex-col xl:flex-row bg-[#0b0e14] text-slate-300 font-sans overflow-hidden relative" style={{ height: '100vh', width: '100vw' }}>
       
       {/* MOBILE HEADER */}
       <header className="xl:hidden w-full h-16 bg-[#0b0e14] border-b border-slate-800/60 flex items-center justify-between px-6 shrink-0 z-40">
         <div className="w-28 h-auto">
+          {/* Path updated to /Logo.png to match file name exactly */}
           <img 
-            src={logoUrl}
-            alt="AI Shield Logo" 
-            className="w-full h-full object-contain filter drop-shadow-[0_0_8px_rgba(6,182,212,0.3)]" 
-          />
+              src={require('../public/Logo.png')} 
+              alt="AI Shield Logo" 
+              className="w-full h-full object-contain filter drop-shadow-[0_0_8px_rgba(6,182,212,0.3)]" 
+            />
         </div>
-        <button 
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="p-1 text-slate-400 hover:text-cyan-400 transition-colors cursor-pointer"
-        >
+        <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="p-1 text-slate-400 hover:text-cyan-400 transition-colors cursor-pointer">
           {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
       </header>
 
       {/* SIDEBAR */}
-      <aside className={`w-64 flex flex-col h-full border-r border-slate-800/40 shrink-0 bg-[#0b0e14] absolute xl:relative z-50 xl:translate-x-0 transition-transform duration-300 ease-in-out ${
-        mobileMenuOpen ? 'translate-x-0 top-0 left-0 bottom-0' : '-translate-x-full xl:translate-x-0'
-      }`}>
+      <aside className={`w-64 flex flex-col h-full border-r border-slate-800/40 shrink-0 bg-[#0b0e14] absolute xl:relative z-50 xl:translate-x-0 transition-transform duration-300 ease-in-out ${mobileMenuOpen ? 'translate-x-0 top-0 left-0 bottom-0' : '-translate-x-full xl:translate-x-0'}`}>
         <div className="p-8 hidden xl:flex items-center justify-center">
           <div className="w-40 h-auto">
              <img 
-               src={logoUrl} 
+               src={require('../public/Logo.png')} 
                alt="AI Shield Logo" 
                className="w-full h-full object-contain filter drop-shadow-[0_0_8px_rgba(6,182,212,0.3)]" 
              />
@@ -72,19 +62,8 @@ const AIShieldScanner = () => {
 
         <nav className="flex-1 px-4 space-y-2 mt-4 xl:mt-0 overflow-y-auto custom-scrollbar">
           {menuItems.map((item) => (
-            <button
-              key={item.name}
-              onClick={() => handleTabChange(item.name)}
-              className={`w-full flex items-center justify-between px-4 py-3 rounded-lg transition-all cursor-pointer ${
-                activeTab === item.name 
-                ? 'bg-cyan-500 text-white shadow-[0_0_15px_rgba(6,182,212,0.4)] font-semibold' 
-                : 'hover:bg-slate-800/50 text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                {item.icon}
-                <span className="text-sm">{item.name}</span>
-              </div>
+            <button key={item.name} onClick={() => handleTabChange(item.name)} className={`w-full flex items-center justify-between px-4 py-3 rounded-lg transition-all cursor-pointer ${activeTab === item.name ? 'bg-cyan-500 text-white shadow-[0_0_15px_rgba(6,182,212,0.4)] font-semibold' : 'hover:bg-slate-800/50 text-slate-400 hover:text-slate-200'}`}>
+              <div className="flex items-center gap-3">{item.icon}<span className="text-sm">{item.name}</span></div>
               {activeTab === item.name && <ChevronRight size={16} />}
             </button>
           ))}
@@ -110,16 +89,10 @@ const AIShieldScanner = () => {
       </aside>
 
       {mobileMenuOpen && (
-        <div 
-          className="fixed inset-0 bg-black/70 backdrop-blur-xs xl:hidden z-35"
-          onClick={() => setMobileMenuOpen(false)}
-        />
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-xs xl:hidden z-35" onClick={() => setMobileMenuOpen(false)} />
       )}
 
-      <main 
-        className="flex-1 flex flex-col overflow-hidden w-full min-w-0"
-        style={{ height: '100%', minHeight: '0px' }}
-      >
+      <main className="flex-1 flex flex-col overflow-hidden w-full min-w-0" style={{ height: '100%', minHeight: '0px' }}>
         <div className="flex-1 overflow-y-auto p-4 md:p-8 xl:p-10 custom-scrollbar max-w-full">
           {activeTab === 'Dashboard' && <DashboardView />}
           {activeTab === 'Scan Configurations' && <ScanConfigView />}
@@ -128,7 +101,6 @@ const AIShieldScanner = () => {
           {activeTab === 'Settings' && <SettingsView />}
         </div>
       </main>
-
     </div>
   );
 };
