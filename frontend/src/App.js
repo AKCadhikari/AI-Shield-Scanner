@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import logoUrl from './Logo.png';
 import { 
   LayoutDashboard, Settings, ShieldAlert, 
   PlayCircle, FileText, ChevronRight, 
@@ -36,10 +37,10 @@ const AIShieldScanner = () => {
         <div className="w-28 h-auto">
           {/* Path updated to /Logo.png to match file name exactly */}
           <img 
-              src={require('../public/Logo.png')} 
-              alt="AI Shield Logo" 
-              className="w-full h-full object-contain filter drop-shadow-[0_0_8px_rgba(6,182,212,0.3)]" 
-            />
+            src={logoUrl} // 2. Use the variable
+            alt="AI Shield Logo" 
+            className="w-full h-full object-contain filter drop-shadow-[0_0_8px_rgba(6,182,212,0.3)]" 
+          />
         </div>
         <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="p-1 text-slate-400 hover:text-cyan-400 transition-colors cursor-pointer">
           {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -50,11 +51,11 @@ const AIShieldScanner = () => {
       <aside className={`w-64 flex flex-col h-full border-r border-slate-800/40 shrink-0 bg-[#0b0e14] absolute xl:relative z-50 xl:translate-x-0 transition-transform duration-300 ease-in-out ${mobileMenuOpen ? 'translate-x-0 top-0 left-0 bottom-0' : '-translate-x-full xl:translate-x-0'}`}>
         <div className="p-8 hidden xl:flex items-center justify-center">
           <div className="w-40 h-auto">
-             <img 
-               src={require('../public/Logo.png')} 
-               alt="AI Shield Logo" 
-               className="w-full h-full object-contain filter drop-shadow-[0_0_8px_rgba(6,182,212,0.3)]" 
-             />
+            <img 
+              src={logoUrl} // 2. Use the variable
+              alt="AI Shield Logo" 
+              className="w-full h-full object-contain filter drop-shadow-[0_0_8px_rgba(6,182,212,0.3)]" 
+            />
           </div>
         </div>
 
