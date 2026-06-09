@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import logoUrl from './AI Shield Scanner logo.png';
+// THE FIX: Add 'url:' exactly like this so Parcel knows it's an image asset
+import logoUrl from 'url:./logo.png'; 
+
 import { 
   LayoutDashboard, Settings, ShieldAlert, 
   PlayCircle, FileText, ChevronRight, 
@@ -34,12 +36,12 @@ const AIShieldScanner = () => {
       
       {/* MOBILE HEADER */}
       <header className="xl:hidden w-full h-16 bg-[#0b0e14] border-b border-slate-800/60 flex items-center justify-between px-6 shrink-0 z-40">
-        <div className="w-28 h-auto">
-          {/* Path updated to /Logo.png to match file name exactly */}
+        {/* Added py-2 to create the top and bottom margin */}
+        <div className="w-23 py-2">
           <img 
-            src={logoUrl} // 2. Use the variable
+            src={logoUrl} 
             alt="AI Shield Logo" 
-            className="w-full h-full object-contain filter drop-shadow-[0_0_8px_rgba(6,182,212,0.3)]" 
+            className="w-full h-auto max-h-12 object-contain filter drop-shadow-[0_0_8px_rgba(6,182,212,0.3)]" 
           />
         </div>
         <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="p-1 text-slate-400 hover:text-cyan-400 transition-colors cursor-pointer">
@@ -50,11 +52,11 @@ const AIShieldScanner = () => {
       {/* SIDEBAR */}
       <aside className={`w-64 flex flex-col h-full border-r border-slate-800/40 shrink-0 bg-[#0b0e14] absolute xl:relative z-50 xl:translate-x-0 transition-transform duration-300 ease-in-out ${mobileMenuOpen ? 'translate-x-0 top-0 left-0 bottom-0' : '-translate-x-full xl:translate-x-0'}`}>
         <div className="p-8 hidden xl:flex items-center justify-center">
-          <div className="w-40 h-auto">
+          <div className="w-40">
             <img 
-              src={logoUrl} // 2. Use the variable
+              src={logoUrl} 
               alt="AI Shield Logo" 
-              className="w-full h-full object-contain filter drop-shadow-[0_0_8px_rgba(6,182,212,0.3)]" 
+              className="w-full h-auto object-contain filter drop-shadow-[0_0_8px_rgba(6,182,212,0.3)]" 
             />
           </div>
         </div>
